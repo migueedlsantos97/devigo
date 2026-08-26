@@ -1,5 +1,5 @@
 import type { CorrelationMatrix, Leg, SimulationResult } from './types.js';
-import { identityCorrelation } from './parlay.js';
+import { assertValidCorrelation, identityCorrelation } from './parlay.js';
 import { OddsError } from './odds.js';
 import { combinePrices } from './parlay.js';
 
@@ -38,6 +38,7 @@ export const simulateTicket = (
   const bankroll = options.bankroll ?? 100;
   const ruinThreshold = options.ruinThreshold ?? 0;
   const correlation = options.correlation ?? identityCorrelation(legs.length);
+  assertValidCorrelation(correlation, legs.length);
   const rng = createRng(options.seed ?? 0x2f6e2b1);
   const price = combinePrices(legs.map((leg) => leg.price));
 

@@ -268,8 +268,11 @@ export const usePanel = (locale: Locale): PanelState => {
 
   // Deferred inputs keep slider dragging fluid: the 10k-run simulation lags a
   // frame behind the analytic numbers instead of blocking every input event.
+  // Only scalars are deferred — the matrix is rebuilt from the CURRENT leg
+  // count, otherwise a stale smaller matrix crashes the simulation when a
+  // leg is added.
   const deferredStake = useDeferredValue(stake);
-  const deferredCorrelation = useDeferredValue(correlation);
+  const deferredCorr = useDeferredValue(corr);
   const simulation = useMemo(
     () =>
       legs.length
@@ -277,11 +280,11 @@ export const usePanel = (locale: Locale): PanelState => {
             iterations: 10_000,
             stake: deferredStake,
             seed: 1337,
-            correlation: deferredCorrelation,
+            correlation: uniformCorrelation(legs.length, deferredCorr / 100),
             bankroll: SIM_BANKROLL,
           })
         : null,
-    [legs, deferredStake, deferredCorrelation],
+    [legs, deferredStake, deferredCorr],
   );
 
   const survival = useMemo(() => (legs.length ? survivalCurve(legs) : []), [legs]);

@@ -49,6 +49,12 @@ describe('monte carlo', () => {
     expect(() => simulateTicket([])).toThrow(OddsError);
   });
 
+  it('rejects a correlation matrix that does not match the leg count', () => {
+    expect(() => simulateTicket(legs, { iterations: 100, correlation: [[1]] })).toThrow(
+      /square in leg count/,
+    );
+  });
+
   it('applies default options: 10k iterations, seeded rng, unit stake', () => {
     const a = simulateTicket([legs[0] as Leg]);
     const b = simulateTicket([legs[0] as Leg]);
