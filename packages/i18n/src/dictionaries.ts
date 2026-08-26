@@ -3,7 +3,7 @@ import type { Locale } from './locales.js';
 /** Every UI string. Adding a key without translating it is a type error. */
 export interface Dictionary {
   readonly nav: { engine: string; proof: string; pricing: string; whiteLabel: string; console: string };
-  readonly panelNav: { builder: string; scanner: string; backtest: string; bankroll: string };
+  readonly panelNav: { builder: string; scanner: string; history: string; bankroll: string };
   readonly feedLive: string;
   readonly feedDemo: string;
   readonly bankrollLabel: string;
@@ -78,6 +78,26 @@ export interface Dictionary {
     readonly manualPrice: string;
     readonly manualTag: string;
   };
+  readonly history: {
+    readonly title: string;
+    readonly empty: string;
+    readonly save: string;
+    readonly saved: string;
+    readonly totalStaked: string;
+    readonly realPL: string;
+    readonly expectedPL: string;
+    readonly clvAvg: string;
+    readonly clvHelp: string;
+    readonly statusPending: string;
+    readonly statusWon: string;
+    readonly statusLost: string;
+    readonly statusVoid: string;
+    readonly clv: string;
+    readonly noClv: string;
+    readonly delete: string;
+    readonly savedAt: (date: string) => string;
+    readonly summary: (n: number) => string;
+  };
   readonly scan: {
     readonly title: string;
     readonly subtitle: string;
@@ -113,7 +133,7 @@ export interface Dictionary {
 
 const es: Dictionary = {
   nav: { engine: 'Motor', proof: 'Pruebas', pricing: 'Precios', whiteLabel: 'Marca blanca', console: 'Abrir el panel' },
-  panelNav: { builder: 'Constructor', scanner: 'Escáner de valor', backtest: 'Backtests', bankroll: 'Capital' },
+  panelNav: { builder: 'Constructor', scanner: 'Escáner', history: 'Historial', bankroll: 'Capital' },
   feedLive: 'SEÑAL EN VIVO · THE ODDS API',
   feedDemo: 'DATOS DE DEMO',
   bankrollLabel: 'capital',
@@ -238,6 +258,26 @@ const es: Dictionary = {
     manualPrice: 'Escribe la cuota que te ofrece tu casa para compararla contra el consenso',
     manualTag: 'MANUAL',
   },
+  history: {
+    title: 'Historial de boletos',
+    empty: 'Todavía no guardaste boletos. Arma uno en el panel y pulsa GUARDAR: la cuota, la justa y el valor esperado quedan congelados para medir tu rendimiento.',
+    save: 'GUARDAR',
+    saved: 'GUARDADO ✓',
+    totalStaked: 'Total apostado',
+    realPL: 'Resultado real',
+    expectedPL: 'EV acumulado',
+    clvAvg: 'CLV medio',
+    clvHelp: 'Closing Line Value: tu cuota contra la última línea del mercado. Positivo sostenido = le ganás al mercado, la métrica que separa suerte de ventaja.',
+    statusPending: 'PENDIENTE',
+    statusWon: 'GANADO',
+    statusLost: 'PERDIDO',
+    statusVoid: 'NULO',
+    clv: 'CLV',
+    noClv: 'fuera del feed',
+    delete: 'borrar',
+    savedAt: (date) => 'guardado ' + date,
+    summary: (n) => n + (n === 1 ? ' boleto' : ' boletos'),
+  },
   scan: {
     title: 'Escáner de boletos',
     subtitle: 'Sube la captura de cualquier boleto y mira cuánto paga de verdad — y cuánto se queda la casa.',
@@ -273,7 +313,7 @@ const es: Dictionary = {
 
 const en: Dictionary = {
   nav: { engine: 'Engine', proof: 'Proof', pricing: 'Pricing', whiteLabel: 'White-label', console: 'Open the console' },
-  panelNav: { builder: 'Ticket builder', scanner: 'Value scanner', backtest: 'Backtests', bankroll: 'Bankroll' },
+  panelNav: { builder: 'Ticket builder', scanner: 'Scanner', history: 'History', bankroll: 'Bankroll' },
   feedLive: 'FEED LIVE · THE ODDS API',
   feedDemo: 'DEMO DATA',
   bankrollLabel: 'bankroll',
@@ -397,6 +437,26 @@ const en: Dictionary = {
     margin: 'Commission the book hides inside this market’s prices. Average across quoted books.',
     manualPrice: 'Type the odds your book offers to compare them against the consensus',
     manualTag: 'MANUAL',
+  },
+  history: {
+    title: 'Ticket history',
+    empty: 'No saved tickets yet. Build one in the console and hit SAVE: the price, fair line and expected value are frozen so you can measure your performance.',
+    save: 'SAVE',
+    saved: 'SAVED ✓',
+    totalStaked: 'Total staked',
+    realPL: 'Realized P/L',
+    expectedPL: 'Accumulated EV',
+    clvAvg: 'Avg CLV',
+    clvHelp: 'Closing Line Value: your price against the market’s latest line. Consistently positive = you beat the market — the metric that separates luck from edge.',
+    statusPending: 'PENDING',
+    statusWon: 'WON',
+    statusLost: 'LOST',
+    statusVoid: 'VOID',
+    clv: 'CLV',
+    noClv: 'off feed',
+    delete: 'delete',
+    savedAt: (date) => 'saved ' + date,
+    summary: (n) => n + (n === 1 ? ' ticket' : ' tickets'),
   },
   scan: {
     title: 'Ticket scanner',

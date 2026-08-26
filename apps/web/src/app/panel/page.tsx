@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useState } from 'react';
 import { decimalToAmerican } from '@devigo/core';
 import { formatOdds, formatPercent, getDictionary, LOCALE_META } from '@devigo/i18n';
 import { CurrencySelect } from '@/components/currency-select';
@@ -11,6 +12,7 @@ import { LegPriceInput } from '@/components/leg-price-input';
 import { LangSwitch } from '@/components/lang-switch';
 import { Wordmark } from '@/components/logo';
 import { formatCurrency, useCurrency } from '@/lib/currency';
+import { useHistory } from '@/lib/history';
 import { useLocale } from '@/lib/locale';
 import { KELLY_MULTIPLIER, MIN_EDGE, SIM_BANKROLL } from '@/lib/markets';
 import { usePanel } from '@/lib/ticket-store';
@@ -23,7 +25,34 @@ export default function PanelPage() {
   const t = getDictionary(locale);
   const panel = usePanel(locale);
   const help = useHelpModal();
+  const history = useHistory();
+  const [justSaved, setJustSaved] = useState(false);
   const { analysis, simulation } = panel;
+
+  const saveTicket = (): void => {
+    if (!analysis) return;
+    history.save({
+      stake: panel.stake,
+      currency,
+      method: panel.method,
+      corr: panel.corr,
+      source: panel.source,
+      legs: panel.legs.map((leg) => ({
+        runnerId: leg.id,
+        label: leg.label,
+        matchup: leg.matchup,
+        book: leg.book,
+        price: leg.price,
+        fairPrice: 1 / leg.fairProbability,
+      })),
+      combined: analysis.combinedPrice,
+      fairCombined: 1 / analysis.jointProbability,
+      ev: analysis.expectedValue,
+      edge: analysis.edge,
+    });
+    setJustSaved(true);
+    window.setTimeout(() => setJustSaved(false), 2000);
+  };
 
   const num = (v: number) => formatOdds(locale, v);
   const pct = (v: number, d = 2) => formatPercent(locale, v, d);
@@ -67,7 +96,7 @@ export default function PanelPage() {
           <nav className="hidden gap-[22px] overflow-hidden text-[13px] text-[#71717a] md:flex">
             <span className="whitespace-nowrap font-medium text-[#f4f4f5]">{t.panelNav.builder}</span>
             <Link href="/scan" className="whitespace-nowrap text-[#71717a] hover:text-[#f4f4f5]">{t.panelNav.scanner}</Link>
-            <span className="whitespace-nowrap">{t.panelNav.backtest}</span>
+            <Link href="/history" className="whitespace-nowrap text-[#71717a] hover:text-[#f4f4f5]">{t.panelNav.history}</Link>
             <span className="whitespace-nowrap">{t.panelNav.bankroll}</span>
           </nav>
         </div>
@@ -222,9 +251,20 @@ export default function PanelPage() {
               <h2 className="m-0 text-sm font-semibold">
                 {t.ticket.title} · {panel.legs.length ? t.ticket.legs(panel.legs.length) : t.ticket.emptyLegs}
               </h2>
-              <button type="button" onClick={panel.clear} className="cursor-pointer border-none bg-transparent font-mono text-[10.5px] text-[#71717a] hover:text-danger">
-                {t.ticket.clear}
-              </button>
+              <div className="flex items-center gap-3">
+                {panel.legs.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={saveTicket}
+                    className={`cursor-pointer border-none bg-transparent font-mono text-[10.5px] ${justSaved ? 'text-ev' : 'text-[#71717a] hover:text-ev'}`}
+                  >
+                    {justSaved ? t.history.saved : t.history.save}
+                  </button>
+                )}
+                <button type="button" onClick={panel.clear} className="cursor-pointer border-none bg-transparent font-mono text-[10.5px] text-[#71717a] hover:text-danger">
+                  {t.ticket.clear}
+                </button>
+              </div>
             </div>
 
             {panel.legs.length === 0 && (
