@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { formatOdds, formatPercent, getDictionary, LOCALE_META } from '@devigo/i18n';
 import { AccountBox } from '@/components/account-box';
 import { CurrencySelect } from '@/components/currency-select';
@@ -24,8 +24,7 @@ export default function HistoryPage() {
   const [locale, setLocale] = useLocale();
   const [currency, setCurrency] = useCurrency(locale);
   const t = getDictionary(locale);
-  const { tickets, setStatus, remove } = useHistory();
-  const [livePrices, setLivePrices] = useState<ReadonlyMap<string, number>>(new Map());
+  const { tickets, setStatus, remove, updateClosings } = useHistory();
 
   useEffect(() => {
     let cancelled = false;
@@ -35,15 +34,15 @@ export default function HistoryPage() {
         if (cancelled || !data) return;
         const map = new Map<string, number>();
         for (const market of data.markets) for (const r of market.runners) map.set(r.id, r.price);
-        setLivePrices(map);
+        updateClosings(map);
       })
       .catch(() => {
-        // feed unreachable — CLV column shows off-feed
+        // feed unreachable — stored closing lines still apply
       });
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [updateClosings]);
 
   const money = (v: number) => formatCurrency(v, currency);
   const pct = (v: number, d = 2) => formatPercent(locale, v, d);
@@ -54,10 +53,9 @@ export default function HistoryPage() {
   );
 
   const clvOf = (ticket: SavedTicket): number | null => {
-    const values = ticket.legs.flatMap((leg) => {
-      const current = livePrices.get(leg.runnerId);
-      return current && current > 1 ? [leg.price / current - 1] : [];
-    });
+    const values = ticket.legs.flatMap((leg) =>
+      leg.closing !== null && leg.closing > 1 ? [leg.price / leg.closing - 1] : [],
+    );
     if (!values.length) return null;
     return values.reduce((a, b) => a + b, 0) / values.length;
   };

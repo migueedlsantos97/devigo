@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useDeferredValue, useEffect, useMemo, useState } from 'react';
 import {
   analyzeTicket,
   bookMargin,
@@ -266,12 +266,22 @@ export const usePanel = (locale: Locale): PanelState => {
     [legs, correlation],
   );
 
+  // Deferred inputs keep slider dragging fluid: the 10k-run simulation lags a
+  // frame behind the analytic numbers instead of blocking every input event.
+  const deferredStake = useDeferredValue(stake);
+  const deferredCorrelation = useDeferredValue(correlation);
   const simulation = useMemo(
     () =>
       legs.length
-        ? simulateTicket(legs, { iterations: 10_000, stake, seed: 1337, correlation, bankroll: SIM_BANKROLL })
+        ? simulateTicket(legs, {
+            iterations: 10_000,
+            stake: deferredStake,
+            seed: 1337,
+            correlation: deferredCorrelation,
+            bankroll: SIM_BANKROLL,
+          })
         : null,
-    [legs, stake, correlation],
+    [legs, deferredStake, deferredCorrelation],
   );
 
   const survival = useMemo(() => (legs.length ? survivalCurve(legs) : []), [legs]);

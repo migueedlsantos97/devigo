@@ -16,6 +16,8 @@ export interface SavedLeg {
   readonly book: string;
   readonly price: number;
   readonly fairPrice: number;
+  /** Last market price seen for this runner — freezes into the closing line once the event leaves the feed. */
+  readonly closing: number | null;
 }
 
 export interface SavedTicket {
@@ -39,7 +41,12 @@ const load = (): SavedTicket[] => {
     const raw = window.localStorage.getItem(STORAGE_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw) as SavedTicket[];
-    return Array.isArray(parsed) ? parsed : [];
+    if (!Array.isArray(parsed)) return [];
+    // Backfill `closing` on tickets saved before the field existed.
+    return parsed.map((ticket) => ({
+      ...ticket,
+      legs: ticket.legs.map((leg) => ({ ...leg, closing: leg.closing ?? null })),
+    }));
   } catch {
     return [];
   }
@@ -93,7 +100,7 @@ const fromRow = (row: TicketRow): SavedTicket => ({
   method: row.method as VigMethod,
   corr: row.corr,
   source: row.source === 'live' ? 'live' : 'demo',
-  legs: row.legs,
+  legs: row.legs.map((leg) => ({ ...leg, closing: leg.closing ?? null })),
   combined: Number(row.combined),
   fairCombined: Number(row.fair_combined),
   ev: Number(row.ev),
@@ -187,6 +194,37 @@ export const useHistory = () => {
     [userId],
   );
 
+  /** Refresh closing lines for pending tickets from the live feed's current prices. */
+  const updateClosings = useCallback(
+    (prices: ReadonlyMap<string, number>): void => {
+      setTickets((prev) => {
+        let anyChange = false;
+        const next = prev.map((ticket) => {
+          if (ticket.status !== 'pending') return ticket;
+          let ticketChanged = false;
+          const legs = ticket.legs.map((leg) => {
+            const current = prices.get(leg.runnerId);
+            if (current === undefined || current <= 1 || current === leg.closing) return leg;
+            ticketChanged = true;
+            return { ...leg, closing: current };
+          });
+          if (!ticketChanged) return ticket;
+          anyChange = true;
+          return { ...ticket, legs };
+        });
+        if (!anyChange) return prev;
+        persist(next);
+        if (userId) {
+          for (let i = 0; i < next.length; i += 1) {
+            if (next[i] !== prev[i]) pushRow(userId, next[i] as SavedTicket);
+          }
+        }
+        return next;
+      });
+    },
+    [userId],
+  );
+
   const remove = useCallback(
     (id: string): void => {
       setTickets((prev) => {
@@ -208,7 +246,7 @@ export const useHistory = () => {
     [userId],
   );
 
-  return { tickets, save, setStatus, remove, synced: userId !== null };
+  return { tickets, save, setStatus, remove, updateClosings, synced: userId !== null };
 };
 
 /** Realized profit for a settled ticket; null while pending. */

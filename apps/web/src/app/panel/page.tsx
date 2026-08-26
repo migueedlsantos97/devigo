@@ -44,6 +44,7 @@ export default function PanelPage() {
         book: leg.book,
         price: leg.price,
         fairPrice: 1 / leg.fairProbability,
+        closing: null,
       })),
       combined: analysis.combinedPrice,
       fairCombined: 1 / analysis.jointProbability,
