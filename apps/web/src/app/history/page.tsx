@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { formatOdds, formatPercent, getDictionary, LOCALE_META } from '@devigo/i18n';
+import { AccountBox } from '@/components/account-box';
 import { CurrencySelect } from '@/components/currency-select';
 import { InfoTip } from '@/components/info-tip';
 import { LangSwitch } from '@/components/lang-switch';
@@ -90,7 +91,11 @@ export default function HistoryPage() {
           <span className="font-mono text-[11px] text-[#71717a]">{t.history.summary(tickets.length)}</span>
         </div>
 
-        <div className="mt-5 grid grid-cols-2 gap-2.5 md:grid-cols-4">
+        <div className="mt-5">
+          <AccountBox t={t} />
+        </div>
+
+        <div className="mt-4 grid grid-cols-2 gap-2.5 md:grid-cols-4">
           <div className="rounded-xl border border-edge bg-raised px-4 py-3">
             <div className="text-[10.5px] uppercase tracking-[.05em] text-[#71717a]">{t.history.totalStaked}</div>
             <div className="mt-1 font-mono text-[19px] font-semibold">{money(summary.staked)}</div>

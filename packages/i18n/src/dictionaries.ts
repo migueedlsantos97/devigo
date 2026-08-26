@@ -78,6 +78,20 @@ export interface Dictionary {
     readonly manualPrice: string;
     readonly manualTag: string;
   };
+  readonly account: {
+    readonly signIn: string;
+    readonly why: string;
+    readonly emailPlaceholder: string;
+    readonly sendCode: string;
+    readonly sending: string;
+    readonly codeSent: (email: string) => string;
+    readonly codePlaceholder: string;
+    readonly verify: string;
+    readonly back: string;
+    readonly error: string;
+    readonly syncedAs: (email: string) => string;
+    readonly signOut: string;
+  };
   readonly history: {
     readonly title: string;
     readonly empty: string;
@@ -258,6 +272,20 @@ const es: Dictionary = {
     manualPrice: 'Escribe la cuota que te ofrece tu casa para compararla contra el consenso',
     manualTag: 'MANUAL',
   },
+  account: {
+    signIn: 'Crear cuenta / entrar',
+    why: 'Con cuenta, tu historial te sigue en todos tus dispositivos. Sin cuenta, queda solo en este.',
+    emailPlaceholder: 'tu@email.com',
+    sendCode: 'Enviarme el código',
+    sending: 'Enviando…',
+    codeSent: (email) => 'Te enviamos un código a ' + email + '. Pégalo aquí:',
+    codePlaceholder: 'Código de 6 dígitos',
+    verify: 'Entrar',
+    back: 'Cambiar email',
+    error: 'No funcionó. Revisa el email o el código e intenta de nuevo.',
+    syncedAs: (email) => 'Sincronizado como ' + email,
+    signOut: 'Salir',
+  },
   history: {
     title: 'Historial de boletos',
     empty: 'Todavía no guardaste boletos. Arma uno en el panel y pulsa GUARDAR: la cuota, la justa y el valor esperado quedan congelados para medir tu rendimiento.',
@@ -437,6 +465,20 @@ const en: Dictionary = {
     margin: 'Commission the book hides inside this market’s prices. Average across quoted books.',
     manualPrice: 'Type the odds your book offers to compare them against the consensus',
     manualTag: 'MANUAL',
+  },
+  account: {
+    signIn: 'Create account / sign in',
+    why: 'With an account your history follows you across devices. Without one it stays on this device only.',
+    emailPlaceholder: 'you@email.com',
+    sendCode: 'Send me the code',
+    sending: 'Sending…',
+    codeSent: (email) => 'We sent a code to ' + email + '. Paste it here:',
+    codePlaceholder: '6-digit code',
+    verify: 'Sign in',
+    back: 'Change email',
+    error: 'That didn’t work. Check the email or code and try again.',
+    syncedAs: (email) => 'Synced as ' + email,
+    signOut: 'Sign out',
   },
   history: {
     title: 'Ticket history',
