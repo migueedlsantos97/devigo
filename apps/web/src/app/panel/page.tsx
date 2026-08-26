@@ -12,6 +12,7 @@ import { LegPriceInput } from '@/components/leg-price-input';
 import { LangSwitch } from '@/components/lang-switch';
 import { Wordmark } from '@/components/logo';
 import { formatCurrency, useCurrency } from '@/lib/currency';
+import { dayLabel } from '@/lib/date-groups';
 import { useHistory } from '@/lib/history';
 import { useLocale } from '@/lib/locale';
 import { KELLY_MULTIPLIER, MIN_EDGE, SIM_BANKROLL } from '@/lib/markets';
@@ -138,7 +139,72 @@ export default function PanelPage() {
         </div>
       </header>
 
-      <div className="grid grid-cols-1 items-start gap-5 p-4 pb-10 panel:grid-cols-[minmax(0,1fr)_400px] md:px-7 md:pt-5">
+      <div className="p-4 pb-10 md:px-7 md:pt-5">
+        <section className="mb-4 rounded-[14px] border border-edge bg-raised px-4 py-4 md:px-5">
+          <h2 className="m-0 mb-3 text-sm font-semibold">{t.ticket.goalTitle}</h2>
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="mr-1 flex shrink-0 items-center gap-1 text-[11.5px] text-[#71717a]">
+              {t.ticket.modeLabel} <InfoTip tip={t.ticket.modeHelp} />
+            </span>
+            {(
+              [
+                ['conservative', t.ticket.modeConservative, '🛡️'],
+                ['balanced', t.ticket.modeBalanced, '⚡'],
+                ['fantasy', t.ticket.modeFantasy, '🚀'],
+              ] as const
+            ).map(([key, label, icon]) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => {
+                  setMode(key);
+                  if (goalBuilt && goalAmount > 0) panel.buildForGoal(goalAmount, key);
+                }}
+                className={`flex min-h-[28px] cursor-pointer items-center gap-1 rounded-full border px-2.5 py-1 font-mono text-[10.5px] font-semibold transition-colors ${
+                  mode === key ? 'border-ev-active bg-ev-deep text-ev' : 'border-ctrl bg-card text-[#a1a1aa] hover:border-[#3f3f46]'
+                }`}
+              >
+                <span aria-hidden="true">{icon}</span>
+                {label}
+              </button>
+            ))}
+          </div>
+          <div className="mt-2.5 flex flex-wrap items-center gap-2.5">
+            <span className="flex w-[90px] shrink-0 items-center gap-1 text-[11.5px] text-[#71717a]">
+              {t.ticket.goalLabel}
+            </span>
+            <input
+              type="number"
+              min={1}
+              step={10}
+              placeholder={t.ticket.goalPlaceholder}
+              value={goalInput}
+              onChange={(e) => { setGoalInput(e.target.value); setGoalBuilt(false); }}
+              onKeyDown={(e) => { if (e.key === 'Enter' && goalAmount > 0) { panel.buildForGoal(goalAmount, mode); setGoalBuilt(true); } }}
+              className="min-h-[36px] w-0 min-w-[160px] flex-1 rounded-[9px] border border-ctrl bg-transparent px-3 font-mono text-[13px] outline-none focus:border-[#3f3f46] [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+            />
+            <button
+              type="button"
+              disabled={!(goalAmount > 0)}
+              onClick={() => { panel.buildForGoal(goalAmount, mode); setGoalBuilt(true); }}
+              className="min-h-[36px] shrink-0 cursor-pointer rounded-[9px] border border-ev bg-ev px-3.5 font-mono text-[11px] font-semibold text-ev-on hover:bg-ev-light disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              {t.ticket.goalBuild}
+            </button>
+          </div>
+          {hasGoal && analysis && (
+            <p
+              className="m-0 mt-2.5 text-[12px] leading-[1.5]"
+              style={{ color: panel.stake * analysis.combinedPrice - panel.stake >= goalAmount * 0.999 ? '#34d399' : '#f59e0b' }}
+            >
+              {panel.stake * analysis.combinedPrice - panel.stake >= goalAmount * 0.999
+                ? t.ticket.goalReached(money(panel.stake * analysis.combinedPrice - panel.stake))
+                : t.ticket.goalShort(money(goalAmount), money(panel.stake * analysis.combinedPrice - panel.stake))}
+            </p>
+          )}
+        </section>
+
+        <div className="grid grid-cols-1 items-start gap-5 panel:grid-cols-[minmax(0,1fr)_400px]">
         <main className="flex min-w-0 flex-col gap-4">
           {panel.leagues.length > 1 && (
             <div className="flex flex-wrap items-center gap-2">
@@ -156,6 +222,28 @@ export default function PanelPage() {
                   count={l.count}
                   active={panel.leagueFilter === l.league}
                   onClick={() => panel.setLeagueFilter(panel.leagueFilter === l.league ? null : l.league)}
+                />
+              ))}
+            </div>
+          )}
+
+          {panel.dates.length > 1 && (
+            <div className="flex flex-wrap items-center gap-2">
+              <LeagueChip
+                league={null}
+                label={t.board.allDates}
+                count={panel.dates.reduce((sum, d) => sum + d.count, 0)}
+                active={panel.dateFilter === null}
+                onClick={() => panel.setDateFilter(null)}
+              />
+              {panel.dates.map((d) => (
+                <LeagueChip
+                  key={d.date}
+                  league={null}
+                  label={dayLabel(d.date, locale, t.board.today, t.board.tomorrow)}
+                  count={d.count}
+                  active={panel.dateFilter === d.date}
+                  onClick={() => panel.setDateFilter(panel.dateFilter === d.date ? null : d.date)}
                 />
               ))}
             </div>
@@ -271,69 +359,6 @@ export default function PanelPage() {
                   {t.ticket.clear}
                 </button>
               </div>
-            </div>
-
-            <div className="border-b border-hairline px-4 py-3.5">
-              <div className="flex items-center gap-1.5">
-                <span className="mr-1 flex shrink-0 items-center gap-1 text-[11.5px] text-[#71717a]">
-                  {t.ticket.modeLabel} <InfoTip tip={t.ticket.modeHelp} />
-                </span>
-                {(
-                  [
-                    ['conservative', t.ticket.modeConservative, '🛡️'],
-                    ['balanced', t.ticket.modeBalanced, '⚡'],
-                    ['fantasy', t.ticket.modeFantasy, '🚀'],
-                  ] as const
-                ).map(([key, label, icon]) => (
-                  <button
-                    key={key}
-                    type="button"
-                    onClick={() => {
-                      setMode(key);
-                      if (goalBuilt && goalAmount > 0) panel.buildForGoal(goalAmount, key);
-                    }}
-                    className={`flex min-h-[28px] cursor-pointer items-center gap-1 rounded-full border px-2.5 py-1 font-mono text-[10.5px] font-semibold transition-colors ${
-                      mode === key ? 'border-ev-active bg-ev-deep text-ev' : 'border-ctrl bg-card text-[#a1a1aa] hover:border-[#3f3f46]'
-                    }`}
-                  >
-                    <span aria-hidden="true">{icon}</span>
-                    {label}
-                  </button>
-                ))}
-              </div>
-              <div className="mt-2.5 flex items-center gap-2.5">
-                <span className="flex w-[90px] shrink-0 items-center gap-1 text-[11.5px] text-[#71717a]">
-                  {t.ticket.goalLabel}
-                </span>
-                <input
-                  type="number"
-                  min={1}
-                  step={10}
-                  placeholder={t.ticket.goalPlaceholder}
-                  value={goalInput}
-                  onChange={(e) => { setGoalInput(e.target.value); setGoalBuilt(false); }}
-                  onKeyDown={(e) => { if (e.key === 'Enter' && goalAmount > 0) { panel.buildForGoal(goalAmount, mode); setGoalBuilt(true); } }}
-                  className="min-h-[36px] w-0 flex-1 rounded-[9px] border border-ctrl bg-transparent px-3 font-mono text-[13px] outline-none focus:border-[#3f3f46] [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-                />
-                <button
-                  type="button"
-                  disabled={!(goalAmount > 0)}
-                  onClick={() => { panel.buildForGoal(goalAmount, mode); setGoalBuilt(true); }}
-                  className="min-h-[36px] shrink-0 cursor-pointer rounded-[9px] border border-ev bg-ev px-3.5 font-mono text-[11px] font-semibold text-ev-on hover:bg-ev-light disabled:cursor-not-allowed disabled:opacity-40"
-                >
-                  {t.ticket.goalBuild}
-                </button>
-              </div>
-              {hasGoal && analysis && (
-                <p
-                  className="m-0 mt-2.5 text-[12px] leading-[1.5]"
-                  style={{ color: panel.stake * analysis.combinedPrice - panel.stake >= goalAmount * 0.999 ? '#34d399' : '#f59e0b' }}
-                >
-                  {panel.stake * analysis.combinedPrice - panel.stake >= goalAmount * 0.999
-                    ? t.ticket.goalReached(money(panel.stake * analysis.combinedPrice - panel.stake))
-                    : t.ticket.goalShort(money(goalAmount), money(panel.stake * analysis.combinedPrice - panel.stake))}
-                </p>
-              )}
             </div>
 
             {panel.legs.length === 0 && (
@@ -475,6 +500,7 @@ export default function PanelPage() {
             </div>
           </section>
         </aside>
+        </div>
       </div>
       <HelpModal t={t} open={help.open} onClose={help.close} />
     </div>

@@ -40,6 +40,7 @@ export interface Dictionary {
   readonly ticket: {
     title: string; empty: string; clear: string; stake: string; correlation: string;
     legs: (n: number) => string; emptyLegs: string;
+    goalTitle: string;
     goalLabel: string; goalPlaceholder: string; goalBuild: string; goalHelp: string;
     goalReached: (amount: string) => string;
     goalShort: (target: string, achieved: string) => string;
@@ -64,6 +65,9 @@ export interface Dictionary {
     margin: (v: string) => string; detail: (fair: string, edge: string) => string;
     books: (n: number) => string;
     allLeagues: string;
+    allDates: string;
+    today: string;
+    tomorrow: string;
   };
   readonly currencyLabel: string;
   readonly methods: { shin: string; multiplicative: string; additive: string };
@@ -231,6 +235,7 @@ const es: Dictionary = {
     clear: 'VACIAR', stake: 'Importe', correlation: 'Correl.',
     legs: (n) => n + (n === 1 ? ' selección' : ' selecciones'),
     emptyLegs: 'vacío',
+    goalTitle: 'Arma tu boleto',
     goalLabel: 'Quiero ganar',
     goalPlaceholder: 'ej. 500',
     goalBuild: 'ARMAR',
@@ -261,6 +266,9 @@ const es: Dictionary = {
     detail: (fair, edgeStr) => 'justa ' + fair + ' · ' + edgeStr,
     books: (n) => n + (n === 1 ? ' casa' : ' casas'),
     allLeagues: 'Todas',
+    allDates: 'Todas',
+    today: 'HOY',
+    tomorrow: 'MAÑANA',
   },
   currencyLabel: 'Moneda',
   methods: { shin: 'el método de Shin', multiplicative: 'reparto proporcional', additive: 'reparto aditivo' },
@@ -436,6 +444,7 @@ const en: Dictionary = {
     clear: 'CLEAR', stake: 'Stake', correlation: 'Corr.',
     legs: (n) => n + (n === 1 ? ' leg' : ' legs'),
     emptyLegs: 'empty',
+    goalTitle: 'Build your ticket',
     goalLabel: 'I want to win',
     goalPlaceholder: 'e.g. 500',
     goalBuild: 'BUILD',
@@ -466,6 +475,9 @@ const en: Dictionary = {
     detail: (fair, edgeStr) => 'fair ' + fair + ' · ' + edgeStr,
     books: (n) => n + (n === 1 ? ' book' : ' books'),
     allLeagues: 'All',
+    allDates: 'All',
+    today: 'TODAY',
+    tomorrow: 'TOMORROW',
   },
   currencyLabel: 'Currency',
   methods: { shin: "Shin's method", multiplicative: 'proportional de-vig', additive: 'additive de-vig' },

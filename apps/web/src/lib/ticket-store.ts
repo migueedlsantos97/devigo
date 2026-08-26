@@ -17,6 +17,7 @@ import {
   type VigMethod,
 } from '@devigo/core';
 import { LOCALE_META, type Locale } from '@devigo/i18n';
+import { localDateKey } from './date-groups';
 import {
   DEFAULT_BANKROLL,
   DEMO_MARKETS,
@@ -48,6 +49,8 @@ export interface BoardMarket {
   readonly id: string;
   readonly league: string;
   readonly time: string;
+  /** Raw kickoff timestamp — used to group/filter the board by calendar day. */
+  readonly startsAt: string;
   readonly matchup: string;
   readonly marketName: string;
   readonly margin: number;
@@ -94,6 +97,10 @@ export interface PanelState {
   readonly leagues: ReadonlyArray<{ league: string; count: number }>;
   readonly leagueFilter: string | null;
   readonly setLeagueFilter: (league: string | null) => void;
+  /** Distinct local calendar days on the full board with their market counts, sorted ascending. */
+  readonly dates: ReadonlyArray<{ date: string; count: number }>;
+  readonly dateFilter: string | null;
+  readonly setDateFilter: (date: string | null) => void;
   readonly method: VigMethod;
   readonly methodShort: string;
   readonly cycleMethod: () => void;
@@ -134,6 +141,7 @@ export const usePanel = (locale: Locale): PanelState => {
   const [methodIndex, setMethodIndex] = useState(0);
   const [bankroll, setBankrollState] = useState(DEFAULT_BANKROLL);
   const [leagueFilter, setLeagueFilter] = useState<string | null>(null);
+  const [dateFilter, setDateFilter] = useState<string | null>(null);
 
   useEffect(() => {
     try {
@@ -186,6 +194,7 @@ export const usePanel = (locale: Locale): PanelState => {
         id: mk.id,
         league: mk.league,
         time: timeFmt.format(new Date(mk.startsAt)).toUpperCase(),
+        startsAt: mk.startsAt,
         matchup: mk.matchup,
         marketName: mk.marketName[locale],
       };
@@ -304,12 +313,31 @@ export const usePanel = (locale: Locale): PanelState => {
     return [...counts.entries()].map(([league, count]) => ({ league, count }));
   }, [board]);
 
+  const dates = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const market of board) {
+      const key = localDateKey(market.startsAt);
+      counts.set(key, (counts.get(key) ?? 0) + 1);
+    }
+    return [...counts.entries()].sort((a, b) => a[0].localeCompare(b[0])).map(([date, count]) => ({ date, count }));
+  }, [board]);
+
+  const filteredBoard = useMemo(() => {
+    let list = board;
+    if (leagueFilter !== null) list = list.filter((m) => m.league === leagueFilter);
+    if (dateFilter !== null) list = list.filter((m) => localDateKey(m.startsAt) === dateFilter);
+    return list;
+  }, [board, leagueFilter, dateFilter]);
+
   return {
     source,
-    board: leagueFilter === null ? board : board.filter((m) => m.league === leagueFilter),
+    board: filteredBoard,
     leagues,
     leagueFilter,
     setLeagueFilter,
+    dates,
+    dateFilter,
+    setDateFilter,
     method: method.key,
     methodShort: method.short,
     cycleMethod: () => setMethodIndex((i) => (i + 1) % METHODS.length),
