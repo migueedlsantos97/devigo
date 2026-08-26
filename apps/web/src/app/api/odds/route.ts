@@ -1,4 +1,4 @@
-import { bestOffers } from '@devigo/core';
+import { adjustForCommission, bestOffers } from '@devigo/core';
 import { createTheOddsApiAdapter, type OddsFeedEvent } from '@devigo/adapters';
 import type { NormalizedMarket, OddsFeedResponse } from '@/lib/markets';
 
@@ -15,6 +15,20 @@ const LEAGUES: ReadonlyArray<{ key: string; label: string; soccer: boolean }> = 
 
 const MAX_EVENTS_PER_LEAGUE = 3;
 const MAX_BOOKS_PER_EVENT = 10;
+
+/**
+ * Commission on net winnings charged by betting exchanges (classic sportsbooks
+ * charge nothing here — their take is already inside the price as vig).
+ * Standard published base rates; adjust if your account tier differs.
+ */
+const EXCHANGE_COMMISSION: Record<string, number> = {
+  betfair_ex_uk: 0.05,
+  betfair_ex_eu: 0.05,
+  betfair_ex_au: 0.05,
+  smarkets: 0.02,
+  matchbook: 0.02,
+  betdaq: 0.02,
+};
 
 /** Groups one event's per-book h2h quotes into a single market with an aligned price matrix. */
 const toMarket = (
@@ -39,7 +53,12 @@ const toMarket = (
   }
   if (priceSets.length === 0) return null;
 
-  const offers = bestOffers(priceSets);
+  // Line-shop on commission-adjusted (net) prices; consensus stays on gross ones.
+  const commissions = books.map((book) => EXCHANGE_COMMISSION[book] ?? 0);
+  const netSets = priceSets.map((set, b) =>
+    set.map((price) => adjustForCommission(price, commissions[b] ?? 0)),
+  );
+  const offers = bestOffers(netSets);
   const matchup = soccer
     ? `${first.homeTeam} vs ${first.awayTeam}`
     : `${first.awayTeam} @ ${first.homeTeam}`;
@@ -57,10 +76,12 @@ const toMarket = (
         label: { es: label, en: label },
         price: offer.price,
         book: books[offer.book] ?? '',
+        commission: commissions[offer.book] ?? 0,
       };
     }),
     books,
     priceSets,
+    commissions,
   };
 };
 

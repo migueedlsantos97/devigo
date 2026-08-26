@@ -51,6 +51,18 @@ export const fractionalToDecimal = (fraction: string): DecimalOdds => {
   return numerator / denominator + 1;
 };
 
+/**
+ * Effective decimal price after an exchange commission on net winnings:
+ * 1 + (price - 1) * (1 - rate). Rate 0 returns the price unchanged.
+ */
+export const adjustForCommission = (price: DecimalOdds, rate: number): DecimalOdds => {
+  assertDecimal(price);
+  if (!Number.isFinite(rate) || rate < 0 || rate >= 1) {
+    throw new OddsError(`Commission rate must be in [0, 1), received ${rate}`);
+  }
+  return 1 + (price - 1) * (1 - rate);
+};
+
 /** Bookmaker overround across a complete market: sum(1/price) - 1. */
 export const bookMargin = (prices: ReadonlyArray<DecimalOdds>): number => {
   if (prices.length === 0) throw new OddsError('Market must contain at least one runner');

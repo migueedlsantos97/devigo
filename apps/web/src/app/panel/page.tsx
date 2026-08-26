@@ -163,6 +163,7 @@ export default function PanelPage() {
                             <span className="mt-[3px] block overflow-hidden text-ellipsis whitespace-nowrap font-mono text-[10.5px]" style={{ color: value ? '#34d399' : runner.edge < -0.04 ? '#71717a' : '#a1a1aa' }}>
                               {t.board.detail(num(runner.fairPrice), edgeStr)}
                               {runner.book ? ` · ${runner.book.toUpperCase()}` : ''}
+                              {runner.commission > 0 ? ` (−${Math.round(runner.commission * 100)}%)` : ''}
                             </span>
                           </span>
                           <span className="font-mono text-[15px] font-semibold" style={{ color: on ? '#34d399' : '#f4f4f5' }}>
@@ -204,6 +205,7 @@ export default function PanelPage() {
                         <div className="mt-[3px] font-mono text-[10.5px] text-[#71717a]">
                           {leg.matchup} · {t.board.detail(num(1 / leg.fairProbability), pct(leg.fairProbability, 1))}
                           {leg.book ? ` · ${leg.book.toUpperCase()}` : ''}
+                          {leg.commission > 0 ? ` (−${Math.round(leg.commission * 100)}%)` : ''}
                         </div>
                       </div>
                       <div className="flex shrink-0 items-center gap-2">

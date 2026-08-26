@@ -35,6 +35,8 @@ export interface BoardRunner {
   readonly price: number;
   /** Bookmaker offering `price` when multiple books are quoted; '' otherwise. */
   readonly book: string;
+  /** Exchange commission already discounted from `price` (0 for sportsbooks/demo). */
+  readonly commission: number;
   readonly fairProbability: number;
   readonly fairPrice: number;
   readonly edge: number;
@@ -90,7 +92,7 @@ export interface PanelState {
   readonly methodShort: string;
   readonly cycleMethod: () => void;
   readonly selected: ReadonlyArray<string>;
-  readonly legs: ReadonlyArray<Leg & { matchup: string; book: string }>;
+  readonly legs: ReadonlyArray<Leg & { matchup: string; book: string; commission: number }>;
   readonly toggle: (id: string) => void;
   readonly remove: (id: string) => void;
   readonly clear: () => void;
@@ -190,6 +192,7 @@ export const usePanel = (locale: Locale): PanelState => {
               matchup: mk.matchup,
               price: r.price,
               book: r.book,
+              commission: r.commission,
               fairProbability: p,
               fairPrice: p > 0 ? 1 / p : 0,
               edge: p * r.price - 1,
@@ -212,6 +215,7 @@ export const usePanel = (locale: Locale): PanelState => {
           matchup: mk.matchup,
           price: r.price,
           book: '',
+          commission: 0,
           fairProbability: r.fairProbability,
           fairPrice: r.fairPrice,
           edge: r.fairProbability * r.price - 1,
@@ -232,6 +236,7 @@ export const usePanel = (locale: Locale): PanelState => {
           label: runner.label,
           matchup: runner.matchup,
           book: runner.book,
+          commission: runner.commission,
           price: runner.price,
           fairProbability: runner.fairProbability,
         }];

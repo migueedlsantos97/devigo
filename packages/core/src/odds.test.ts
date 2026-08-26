@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
-  OddsError, americanToDecimal, bookMargin, decimalToAmerican, decimalToImplied,
-  fractionalToDecimal, impliedToDecimal, roundTo,
+  OddsError, adjustForCommission, americanToDecimal, bookMargin, decimalToAmerican,
+  decimalToImplied, fractionalToDecimal, impliedToDecimal, roundTo,
 } from './odds.js';
 
 describe('odds conversion', () => {
@@ -33,6 +33,17 @@ describe('odds conversion', () => {
 
   it('computes book margin', () => {
     expect(roundTo(bookMargin([1.91, 1.91]))).toBe(0.0471);
+  });
+
+  it('adjusts exchange prices for commission on net winnings', () => {
+    expect(adjustForCommission(5.7, 0.02)).toBeCloseTo(5.606, 9);
+    expect(adjustForCommission(5.7, 0.05)).toBeCloseTo(5.465, 9);
+    expect(adjustForCommission(3.4, 0)).toBe(3.4);
+    expect(adjustForCommission(1.01, 0.05)).toBeGreaterThan(1);
+    expect(() => adjustForCommission(1, 0.02)).toThrow(OddsError);
+    expect(() => adjustForCommission(2, -0.1)).toThrow(/Commission/);
+    expect(() => adjustForCommission(2, 1)).toThrow(/Commission/);
+    expect(() => adjustForCommission(2, Number.NaN)).toThrow(/Commission/);
   });
 
   it('rejects invalid input', () => {
