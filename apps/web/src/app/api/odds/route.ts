@@ -1,7 +1,9 @@
 import { createTheOddsApiAdapter, type OddsFeedEvent } from '@devigo/adapters';
 import type { NormalizedMarket, OddsFeedResponse } from '@/lib/markets';
 
-export const revalidate = 300;
+// Always evaluated at request time (the API key is a runtime env var); the
+// upstream feed itself is cached for 5 minutes via the fetch Data Cache below.
+export const dynamic = 'force-dynamic';
 
 const LEAGUES: ReadonlyArray<{ key: string; label: string; soccer: boolean }> = [
   { key: 'soccer_epl', label: 'EPL', soccer: true },
@@ -34,7 +36,10 @@ export async function GET(): Promise<Response> {
     return Response.json(body);
   }
 
-  const adapter = createTheOddsApiAdapter({ apiKey });
+  const adapter = createTheOddsApiAdapter({
+    apiKey,
+    fetchImpl: (input, init) => fetch(input, { ...init, next: { revalidate: 300 } }),
+  });
   const settled = await Promise.allSettled(
     LEAGUES.map(async (league) => {
       const events = await adapter.fetchEvents(league.key);
