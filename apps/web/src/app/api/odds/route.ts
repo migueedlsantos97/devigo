@@ -1,3 +1,4 @@
+import { bestOffers } from '@devigo/core';
 import { createTheOddsApiAdapter, type OddsFeedEvent } from '@devigo/adapters';
 import type { NormalizedMarket, OddsFeedResponse } from '@/lib/markets';
 
@@ -13,19 +14,53 @@ const LEAGUES: ReadonlyArray<{ key: string; label: string; soccer: boolean }> = 
 ];
 
 const MAX_EVENTS_PER_LEAGUE = 3;
+const MAX_BOOKS_PER_EVENT = 10;
 
-const toMarket = (event: OddsFeedEvent, leagueLabel: string, soccer: boolean): NormalizedMarket => {
-  const threeWay = event.runners.length === 3;
+/** Groups one event's per-book h2h quotes into a single market with an aligned price matrix. */
+const toMarket = (
+  group: ReadonlyArray<OddsFeedEvent>,
+  leagueLabel: string,
+  soccer: boolean,
+): NormalizedMarket | null => {
+  const first = group[0];
+  if (!first || first.runners.length < 2) return null;
+  const labels = first.runners.map((r) => r.label);
+
+  const books: string[] = [];
+  const priceSets: number[][] = [];
+  for (const quote of group) {
+    if (books.length >= MAX_BOOKS_PER_EVENT) break;
+    if (books.includes(quote.book)) continue;
+    const byLabel = new Map(quote.runners.map((r) => [r.label, r.price]));
+    const set = labels.map((label) => byLabel.get(label) ?? 0);
+    if (set.some((price) => !(price > 1))) continue;
+    books.push(quote.book);
+    priceSets.push(set);
+  }
+  if (priceSets.length === 0) return null;
+
+  const offers = bestOffers(priceSets);
   const matchup = soccer
-    ? `${event.homeTeam} vs ${event.awayTeam}`
-    : `${event.awayTeam} @ ${event.homeTeam}`;
+    ? `${first.homeTeam} vs ${first.awayTeam}`
+    : `${first.awayTeam} @ ${first.homeTeam}`;
+
   return {
-    id: event.eventId,
+    id: first.eventId,
     league: leagueLabel,
-    startsAt: event.startsAt,
+    startsAt: first.startsAt,
     matchup,
-    marketName: threeWay ? { es: '1X2', en: '1X2' } : { es: 'Ganador', en: 'Moneyline' },
-    runners: event.runners.map((r) => ({ id: r.id, label: { es: r.label, en: r.label }, price: r.price })),
+    marketName: labels.length === 3 ? { es: '1X2', en: '1X2' } : { es: 'Ganador', en: 'Moneyline' },
+    runners: labels.map((label, i) => {
+      const offer = offers[i] ?? { price: 0, book: 0 };
+      return {
+        id: `${first.eventId}:${i}`,
+        label: { es: label, en: label },
+        price: offer.price,
+        book: books[offer.book] ?? '',
+      };
+    }),
+    books,
+    priceSets,
   };
 };
 
@@ -40,16 +75,21 @@ export async function GET(): Promise<Response> {
     apiKey,
     fetchImpl: (input, init) => fetch(input, { ...init, next: { revalidate: 300 } }),
   });
+
   const settled = await Promise.allSettled(
     LEAGUES.map(async (league) => {
       const events = await adapter.fetchEvents(league.key);
-      const seen = new Set<string>();
-      const markets: NormalizedMarket[] = [];
+      const byEvent = new Map<string, OddsFeedEvent[]>();
       for (const event of events) {
-        if (event.market !== 'h2h' || seen.has(event.eventId)) continue;
-        if (event.runners.some((r) => r.price <= 1)) continue;
-        seen.add(event.eventId);
-        markets.push(toMarket(event, league.label, league.soccer));
+        if (event.market !== 'h2h') continue;
+        const group = byEvent.get(event.eventId);
+        if (group) group.push(event);
+        else byEvent.set(event.eventId, [event]);
+      }
+      const markets: NormalizedMarket[] = [];
+      for (const group of byEvent.values()) {
+        const market = toMarket(group, league.label, league.soccer);
+        if (market) markets.push(market);
         if (markets.length >= MAX_EVENTS_PER_LEAGUE) break;
       }
       return markets;

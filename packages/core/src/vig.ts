@@ -56,23 +56,26 @@ export const removeVigShin = (
   return raw.map((p) => p / rawTotal);
 };
 
+/** Dispatches to the de-vig model selected by `method`. */
+export const removeVig = (
+  implied: ReadonlyArray<Probability>,
+  method: VigMethod,
+): ReadonlyArray<Probability> => {
+  switch (method) {
+    case 'multiplicative':
+      return removeVigMultiplicative(implied);
+    case 'additive':
+      return removeVigAdditive(implied);
+    case 'shin':
+      return removeVigShin(implied);
+  }
+};
+
 export const devig = (runners: ReadonlyArray<Runner>, method: VigMethod = 'shin'): FairMarket => {
   if (runners.length < 2) throw new OddsError('De-vigging requires at least two runners');
   const prices: DecimalOdds[] = runners.map((r) => r.price);
   const implied = prices.map(decimalToImplied);
-
-  let fair: ReadonlyArray<Probability>;
-  switch (method) {
-    case 'multiplicative':
-      fair = removeVigMultiplicative(implied);
-      break;
-    case 'additive':
-      fair = removeVigAdditive(implied);
-      break;
-    case 'shin':
-      fair = removeVigShin(implied);
-      break;
-  }
+  const fair = removeVig(implied, method);
 
   return {
     method,

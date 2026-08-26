@@ -142,6 +142,7 @@ export default function PanelPage() {
                     <div className="mt-1.5 text-[13px] font-medium leading-[1.35]">{market.matchup}</div>
                     <div className="mt-[3px] text-[11px] text-[#71717a]">
                       {market.marketName} · {t.board.margin(pct(market.margin, 2))}
+                      {market.bookCount > 1 ? ` · ${t.board.books(market.bookCount)}` : ''}
                     </div>
                   </div>
                   <div className="grid grid-cols-[repeat(auto-fit,minmax(160px,1fr))] gap-2">
@@ -159,8 +160,9 @@ export default function PanelPage() {
                         >
                           <span className="min-w-0">
                             <span className="block overflow-hidden text-ellipsis whitespace-nowrap text-[12.5px] font-medium">{runner.label}</span>
-                            <span className="mt-[3px] block font-mono text-[10.5px]" style={{ color: value ? '#34d399' : runner.edge < -0.04 ? '#71717a' : '#a1a1aa' }}>
+                            <span className="mt-[3px] block overflow-hidden text-ellipsis whitespace-nowrap font-mono text-[10.5px]" style={{ color: value ? '#34d399' : runner.edge < -0.04 ? '#71717a' : '#a1a1aa' }}>
                               {t.board.detail(num(runner.fairPrice), edgeStr)}
+                              {runner.book ? ` · ${runner.book.toUpperCase()}` : ''}
                             </span>
                           </span>
                           <span className="font-mono text-[15px] font-semibold" style={{ color: on ? '#34d399' : '#f4f4f5' }}>
@@ -201,6 +203,7 @@ export default function PanelPage() {
                         <div className="text-[12.5px] font-medium leading-[1.3]">{leg.label}</div>
                         <div className="mt-[3px] font-mono text-[10.5px] text-[#71717a]">
                           {leg.matchup} · {t.board.detail(num(1 / leg.fairProbability), pct(leg.fairProbability, 1))}
+                          {leg.book ? ` · ${leg.book.toUpperCase()}` : ''}
                         </div>
                       </div>
                       <div className="flex shrink-0 items-center gap-2">

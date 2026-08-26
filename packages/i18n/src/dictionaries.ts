@@ -53,6 +53,7 @@ export interface Dictionary {
     title: string; subtitle: (method: string) => string; switchModel: string; autoTicket: string;
     kpiScanned: string; kpiValueFound: string; kpiAvgMargin: string; kpiModel: string;
     margin: (v: string) => string; detail: (fair: string, edge: string) => string;
+    books: (n: number) => string;
   };
   readonly methods: { shin: string; multiplicative: string; additive: string };
   readonly verdict: {
@@ -156,6 +157,7 @@ const es: Dictionary = {
     kpiScanned: 'Líneas escaneadas', kpiValueFound: 'Con valor', kpiAvgMargin: 'Margen medio', kpiModel: 'Modelo',
     margin: (v) => 'margen ' + v,
     detail: (fair, edgeStr) => 'justa ' + fair + ' · ' + edgeStr,
+    books: (n) => n + (n === 1 ? ' casa' : ' casas'),
   },
   methods: { shin: 'el método de Shin', multiplicative: 'reparto proporcional', additive: 'reparto aditivo' },
   verdict: {
@@ -262,6 +264,7 @@ const en: Dictionary = {
     kpiScanned: 'Scanned lines', kpiValueFound: '+EV found', kpiAvgMargin: 'Avg book margin', kpiModel: 'De-vig model',
     margin: (v) => 'margin ' + v,
     detail: (fair, edgeStr) => 'fair ' + fair + ' · ' + edgeStr,
+    books: (n) => n + (n === 1 ? ' book' : ' books'),
   },
   methods: { shin: "Shin's method", multiplicative: 'proportional de-vig', additive: 'additive de-vig' },
   verdict: {

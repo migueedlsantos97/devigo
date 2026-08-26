@@ -50,6 +50,12 @@ pnpm dev         # web on http://localhost:3000
 `/api/odds` serves real markets from [The Odds API](https://the-odds-api.com) when an API key
 is configured; without one the panel falls back to a fixture clearly badged **DEMO DATA**.
 
+With a live feed the panel line-shops across every quoted bookmaker: each market carries a
+per-book price matrix, the fair line is the **cross-book consensus** (each book de-vigged
+independently, then averaged — `consensusProbabilities` in `@devigo/core`), and each runner
+shows the **best available price** and the book offering it (`bestOffers`). Edge is measured
+as best price × consensus probability − 1, which is how real +EV appears.
+
 ```bash
 # local: create apps/web/.env.local with
 ODDS_API_KEY=your_key_here

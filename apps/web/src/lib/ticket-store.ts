@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   analyzeTicket,
+  bookMargin,
+  consensusProbabilities,
   devig,
   simulateTicket,
   survivalCurve,
@@ -31,6 +33,8 @@ export interface BoardRunner {
   readonly label: string;
   readonly matchup: string;
   readonly price: number;
+  /** Bookmaker offering `price` when multiple books are quoted; '' otherwise. */
+  readonly book: string;
   readonly fairProbability: number;
   readonly fairPrice: number;
   readonly edge: number;
@@ -43,6 +47,7 @@ export interface BoardMarket {
   readonly matchup: string;
   readonly marketName: string;
   readonly margin: number;
+  readonly bookCount: number;
   readonly runners: ReadonlyArray<BoardRunner>;
 }
 
@@ -85,7 +90,7 @@ export interface PanelState {
   readonly methodShort: string;
   readonly cycleMethod: () => void;
   readonly selected: ReadonlyArray<string>;
-  readonly legs: ReadonlyArray<Leg & { matchup: string }>;
+  readonly legs: ReadonlyArray<Leg & { matchup: string; book: string }>;
   readonly toggle: (id: string) => void;
   readonly remove: (id: string) => void;
   readonly clear: () => void;
@@ -160,22 +165,53 @@ export const usePanel = (locale: Locale): PanelState => {
       minute: '2-digit',
     });
     return markets.map((mk) => {
-      const fair = devig(
-        mk.runners.map((r) => ({ id: r.id, label: r.label[locale], price: r.price })),
-        method.key,
-      );
-      return {
+      const base = {
         id: mk.id,
         league: mk.league,
         time: timeFmt.format(new Date(mk.startsAt)).toUpperCase(),
         matchup: mk.matchup,
         marketName: mk.marketName[locale],
+      };
+
+      if (mk.priceSets.length > 0) {
+        // Multi-book market: consensus fair line + line-shopped best price.
+        const fair = consensusProbabilities(mk.priceSets, method.key);
+        const margin =
+          mk.priceSets.reduce((sum, set) => sum + bookMargin(set), 0) / mk.priceSets.length;
+        return {
+          ...base,
+          margin,
+          bookCount: mk.books.length,
+          runners: mk.runners.map((r, i) => {
+            const p = fair[i] ?? 0;
+            return {
+              id: r.id,
+              label: r.label[locale],
+              matchup: mk.matchup,
+              price: r.price,
+              book: r.book,
+              fairProbability: p,
+              fairPrice: p > 0 ? 1 / p : 0,
+              edge: p * r.price - 1,
+            };
+          }),
+        };
+      }
+
+      const fair = devig(
+        mk.runners.map((r) => ({ id: r.id, label: r.label[locale], price: r.price })),
+        method.key,
+      );
+      return {
+        ...base,
         margin: fair.margin,
+        bookCount: 1,
         runners: fair.runners.map((r) => ({
           id: r.id,
           label: r.label,
           matchup: mk.matchup,
           price: r.price,
+          book: '',
           fairProbability: r.fairProbability,
           fairPrice: r.fairPrice,
           edge: r.fairProbability * r.price - 1,
@@ -195,6 +231,7 @@ export const usePanel = (locale: Locale): PanelState => {
           id: runner.id,
           label: runner.label,
           matchup: runner.matchup,
+          book: runner.book,
           price: runner.price,
           fairProbability: runner.fairProbability,
         }];
@@ -248,7 +285,7 @@ export const usePanel = (locale: Locale): PanelState => {
     simulation,
     survival,
     histogram,
-    scannedLines: allRunners.length,
+    scannedLines: board.reduce((sum, m) => sum + m.runners.length * m.bookCount, 0),
     valueCount: allRunners.filter((r) => r.edge >= MIN_EDGE).length,
     avgMargin: board.length ? board.reduce((sum, m) => sum + m.margin, 0) / board.length : 0,
   };
