@@ -5,7 +5,7 @@ import './globals.css';
 export const metadata: Metadata = {
   title: 'Devigo — quantitative +EV ticket construction',
   description:
-    'Shin de-vig, correlation-aware joint probability, fractional Kelly and 10,000 Monte Carlo settlements per ticket.',
+    'See what a bet really pays: we strip the bookmaker commission out of the odds, compare across books, and show how often a ticket like yours actually cashes.',
   appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'Devigo' },
 };
 
