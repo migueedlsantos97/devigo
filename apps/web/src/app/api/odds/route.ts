@@ -31,6 +31,18 @@ const EXCHANGE_COMMISSION: Record<string, number> = {
 };
 
 /** Groups one event's per-book h2h quotes into a single market with an aligned price matrix. */
+const totalsPoint = (market: string): string | null => {
+  const m = /^totals:(.+)$/.exec(market);
+  return m ? (m[1] as string) : null;
+};
+
+const runnerLabel = (raw: string, point: string | null): { es: string; en: string } => {
+  if (point !== null && raw === 'Over') return { es: `Más de ${point}`, en: `Over ${point}` };
+  if (point !== null && raw === 'Under') return { es: `Menos de ${point}`, en: `Under ${point}` };
+  if (raw === 'Draw') return { es: 'Empate', en: 'Draw' };
+  return { es: raw, en: raw };
+};
+
 const toMarket = (
   group: ReadonlyArray<OddsFeedEvent>,
   leagueLabel: string,
@@ -39,6 +51,7 @@ const toMarket = (
   const first = group[0];
   if (!first || first.runners.length < 2) return null;
   const labels = first.runners.map((r) => r.label);
+  const point = totalsPoint(first.market);
 
   const books: string[] = [];
   const priceSets: number[][] = [];
@@ -63,17 +76,24 @@ const toMarket = (
     ? `${first.homeTeam} vs ${first.awayTeam}`
     : `${first.awayTeam} @ ${first.homeTeam}`;
 
+  const marketName =
+    point !== null
+      ? { es: `Más/Menos ${point}`, en: `Over/Under ${point}` }
+      : labels.length === 3
+        ? { es: '1X2', en: '1X2' }
+        : { es: 'Ganador', en: 'Moneyline' };
+
   return {
-    id: first.eventId,
+    id: `${first.eventId}:${first.market}`,
     league: leagueLabel,
     startsAt: first.startsAt,
     matchup,
-    marketName: labels.length === 3 ? { es: '1X2', en: '1X2' } : { es: 'Ganador', en: 'Moneyline' },
+    marketName,
     runners: labels.map((label, i) => {
       const offer = offers[i] ?? { price: 0, book: 0 };
       return {
-        id: `${first.eventId}:${i}`,
-        label: { es: label, en: label },
+        id: `${first.eventId}:${first.market}:${i}`,
+        label: runnerLabel(label, point),
         price: offer.price,
         book: books[offer.book] ?? '',
         commission: commissions[offer.book] ?? 0,
@@ -94,24 +114,39 @@ export async function GET(): Promise<Response> {
 
   const adapter = createTheOddsApiAdapter({
     apiKey,
+    markets: 'h2h,totals',
     fetchImpl: (input, init) => fetch(input, { ...init, next: { revalidate: 300 } }),
   });
 
   const settled = await Promise.allSettled(
     LEAGUES.map(async (league) => {
       const events = await adapter.fetchEvents(league.key);
-      const byEvent = new Map<string, OddsFeedEvent[]>();
+      // Group quotes by (event, market-line); keep event order of first appearance.
+      const byEvent = new Map<string, Map<string, OddsFeedEvent[]>>();
       for (const event of events) {
-        if (event.market !== 'h2h') continue;
-        const group = byEvent.get(event.eventId);
+        if (event.market !== 'h2h' && totalsPoint(event.market) === null) continue;
+        const perMarket = byEvent.get(event.eventId) ?? new Map<string, OddsFeedEvent[]>();
+        if (!byEvent.has(event.eventId)) byEvent.set(event.eventId, perMarket);
+        const group = perMarket.get(event.market);
         if (group) group.push(event);
-        else byEvent.set(event.eventId, [event]);
+        else perMarket.set(event.market, [event]);
       }
       const markets: NormalizedMarket[] = [];
-      for (const group of byEvent.values()) {
-        const market = toMarket(group, league.label, league.soccer);
-        if (market) markets.push(market);
-        if (markets.length >= MAX_EVENTS_PER_LEAGUE) break;
+      let eventCount = 0;
+      for (const perMarket of byEvent.values()) {
+        if (eventCount >= MAX_EVENTS_PER_LEAGUE) break;
+        eventCount += 1;
+        const h2h = perMarket.get('h2h');
+        const h2hMarket = h2h ? toMarket(h2h, league.label, league.soccer) : null;
+        if (h2hMarket) markets.push(h2hMarket);
+        // Of the totals lines quoted, keep the one with the deepest book coverage.
+        const totalsGroups = [...perMarket.entries()]
+          .filter(([key]) => totalsPoint(key) !== null)
+          .map(([, group]) => group)
+          .sort((a, b) => b.length - a.length);
+        const bestTotals = totalsGroups[0];
+        const totalsMarket = bestTotals ? toMarket(bestTotals, league.label, league.soccer) : null;
+        if (totalsMarket) markets.push(totalsMarket);
       }
       return markets;
     }),

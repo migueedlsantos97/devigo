@@ -60,6 +60,21 @@ export interface Dictionary {
     positive: (edge: string) => string; heavy: (hit: string) => string; sized: string;
     negative: (hold: string) => string; idle: string;
   };
+  readonly help: {
+    readonly open: string;
+    readonly title: string;
+    readonly close: string;
+    readonly steps: ReadonlyArray<{ title: string; body: string }>;
+    readonly combined: string;
+    readonly fair: string;
+    readonly ev: string;
+    readonly kelly: string;
+    readonly corr: string;
+    readonly mc: string;
+    readonly margin: string;
+    readonly manualPrice: string;
+    readonly manualTag: string;
+  };
   readonly footer: { legal: string };
 }
 
@@ -167,6 +182,26 @@ const es: Dictionary = {
     negative: (hold) => 'Expectativa negativa: la casa se queda con ' + hold + ' en esta combinación. Quita la selección más débil o espera mejor línea.',
     idle: 'El deslizador de correlación modela selecciones que comparten desenlace. Todo el cálculo corre sobre probabilidades justas, nunca sobre la cuota de la casa.',
   },
+  help: {
+    open: '¿Cómo leer el panel?',
+    title: 'Cómo leer el panel',
+    close: 'Entendido',
+    steps: [
+      { title: 'Toda cuota esconde una comisión', body: 'La casa infla las probabilidades para cobrar su margen. Devigo se lo quita a cada casa, promedia las probabilidades de hasta 10 casas y reconstruye la cuota justa: lo que pagaría un mercado sin comisión.' },
+      { title: 'Verde = valor real', body: 'Cada botón muestra la mejor cuota del mercado (neta de comisión de exchange), la justa y tu ventaja. Verde significa que te pagan más de lo que la probabilidad real justifica. Es raro: apreciarlo es el producto.' },
+      { title: 'Arma el boleto y ajusta', body: 'Clic para añadir selecciones, o BOLETO +EV AUTO. Puedes tocar la cuota de cada selección y escribir la que te ofrece TU casa (p. ej. Supermatch) para medirla contra el consenso.' },
+      { title: 'Lee el veredicto, apuesta Kelly', body: 'El valor esperado te dice cuánto ganas o pierdes en promedio. Kelly ¼ es el importe máximo racional para tu capital. El histograma son 10.000 simulaciones del boleto: la varianza real, no la promesa.' },
+    ],
+    combined: 'Producto de las cuotas de tus selecciones: lo que te paga la casa si aciertas todo.',
+    fair: 'Cuota que pagaría un mercado sin comisión, según el consenso de casas. Si la combinada está por debajo, la diferencia es el margen de la casa.',
+    ev: 'Ganancia o pérdida promedio de este boleto por cada vez que lo jugaras. Positivo (verde) = apuesta con valor; negativo (rojo) = regalas dinero.',
+    kelly: 'Importe óptimo según el criterio de Kelly (fraccionado ¼ por prudencia). Apostar más que esto destruye capital a largo plazo aunque tengas ventaja.',
+    corr: 'Si tus selecciones comparten desenlace (mismo partido, misma narrativa), no son independientes. Sube el deslizador y la probabilidad conjunta se ajusta.',
+    mc: 'El boleto se liquida 10.000 veces con un generador reproducible. p05/mediana/p95: el rango realista de resultados, no el premio del folleto.',
+    margin: 'Comisión que la casa esconde en las cuotas de este mercado. Media de las casas cotizadas.',
+    manualPrice: 'Escribe la cuota que te ofrece tu casa para compararla contra el consenso',
+    manualTag: 'MANUAL',
+  },
   footer: { legal: '© 2026 Devigo. Herramienta de modelado, no consejo de apuestas. +18.' },
 };
 
@@ -273,6 +308,26 @@ const en: Dictionary = {
     sized: ' A Kelly-sized stake keeps drawdown inside tolerance.',
     negative: (hold) => 'Negative expectation: the book holds ' + hold + ' on this combination. Drop the weakest leg or wait for a better line.',
     idle: 'The correlation slider models legs that share an outcome. All maths runs on fair de-vigged probabilities, never on the book price.',
+  },
+  help: {
+    open: 'How to read the panel',
+    title: 'How to read the panel',
+    close: 'Got it',
+    steps: [
+      { title: 'Every price hides a commission', body: "Books inflate probabilities to charge their margin. Devigo strips it from each book, averages up to 10 books' probabilities and rebuilds the fair price: what a commission-free market would pay." },
+      { title: 'Green = real value', body: 'Each button shows the best market price (net of exchange commission), the fair price and your edge. Green means the payout beats the real probability. It is rare — spotting it is the product.' },
+      { title: 'Build the ticket, adjust', body: 'Click to add selections, or AUTO +EV TICKET. You can tap any leg price and type the odds YOUR book offers (e.g. a local book) to measure it against the consensus.' },
+      { title: 'Read the verdict, stake Kelly', body: 'Expected value is your average win or loss per play. Quarter Kelly is the rational maximum stake for your bankroll. The histogram is 10,000 simulated settlements: real variance, not the flyer promise.' },
+    ],
+    combined: 'Product of your leg prices: what the book pays if every leg lands.',
+    fair: 'What a commission-free market would pay, per the cross-book consensus. The gap below your combined price is the house margin.',
+    ev: 'Average profit or loss of this ticket per play. Positive (green) = value bet; negative (red) = giving money away.',
+    kelly: 'Optimal stake per the Kelly criterion (quarter-sized for prudence). Staking more destroys bankroll long-term even with an edge.',
+    corr: 'Legs that share an outcome (same match, same script) are not independent. Raise the slider and the joint probability adjusts.',
+    mc: 'The ticket is settled 10,000 times with a reproducible generator. p05/median/p95: the realistic range of outcomes, not the flyer prize.',
+    margin: 'Commission the book hides inside this market’s prices. Average across quoted books.',
+    manualPrice: 'Type the odds your book offers to compare them against the consensus',
+    manualTag: 'MANUAL',
   },
   footer: { legal: '© 2026 Devigo. Modelling tool, not betting advice. 18+.' },
 };

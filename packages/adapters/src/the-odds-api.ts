@@ -1,6 +1,6 @@
 import type { OddsAdapter, OddsFeedEvent } from './index.js';
 
-interface ApiOutcome { name: string; price: number }
+interface ApiOutcome { name: string; price: number; point?: number }
 interface ApiMarket { key: string; outcomes: ApiOutcome[] }
 interface ApiBookmaker { key: string; title: string; markets: ApiMarket[] }
 interface ApiEvent {
@@ -13,18 +13,21 @@ export interface TheOddsApiConfig {
   readonly apiKey: string;
   readonly baseUrl?: string;
   readonly regions?: string;
+  /** Comma-separated market keys, e.g. 'h2h,totals'. Defaults to 'h2h'. */
+  readonly markets?: string;
   readonly fetchImpl?: typeof fetch;
 }
 
 export const createTheOddsApiAdapter = (config: TheOddsApiConfig): OddsAdapter => {
   const baseUrl = config.baseUrl ?? 'https://api.the-odds-api.com/v4';
   const regions = config.regions ?? 'uk,eu';
+  const markets = config.markets ?? 'h2h';
   const doFetch = config.fetchImpl ?? fetch;
 
   return {
     name: 'the-odds-api',
     async fetchEvents(league: string): Promise<ReadonlyArray<OddsFeedEvent>> {
-      const url = `${baseUrl}/sports/${league}/odds?regions=${regions}&oddsFormat=decimal&apiKey=${config.apiKey}`;
+      const url = `${baseUrl}/sports/${league}/odds?regions=${regions}&markets=${markets}&oddsFormat=decimal&apiKey=${config.apiKey}`;
       const response = await doFetch(url);
       if (!response.ok) throw new Error(`Odds feed ${response.status}`);
       const payload = (await response.json()) as ApiEvent[];
@@ -34,7 +37,13 @@ export const createTheOddsApiAdapter = (config: TheOddsApiConfig): OddsAdapter =
             eventId: event.id,
             league: event.sport_key,
             startsAt: event.commence_time,
-            market: market.key,
+            // Point-based markets (totals, spreads) are distinct per line:
+            // encode the point into the market key so books only group when
+            // they quote the same line.
+            market:
+              market.outcomes[0]?.point != null
+                ? `${market.key}:${market.outcomes[0].point}`
+                : market.key,
             book: book.key,
             homeTeam: event.home_team ?? '',
             awayTeam: event.away_team ?? '',

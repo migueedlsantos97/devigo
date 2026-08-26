@@ -21,6 +21,13 @@ const apiPayload = [
               { name: 'Brighton', price: 4.8 },
             ],
           },
+          {
+            key: 'totals',
+            outcomes: [
+              { name: 'Over', price: 1.83, point: 2.5 },
+              { name: 'Under', price: 2.02, point: 2.5 },
+            ],
+          },
         ],
       },
     ],
@@ -37,7 +44,7 @@ describe('the-odds-api adapter', () => {
     const adapter = createTheOddsApiAdapter({ apiKey: 'k', fetchImpl: fetchOk });
     expect(adapter.name).toBe('the-odds-api');
     const events = await adapter.fetchEvents('soccer_epl');
-    expect(events).toHaveLength(1);
+    expect(events).toHaveLength(2);
     const event = events[0] as OddsFeedEvent;
     expect(event.eventId).toBe('evt1');
     expect(event.book).toBe('bookx');
@@ -46,6 +53,9 @@ describe('the-odds-api adapter', () => {
     expect(event.runners).toHaveLength(3);
     expect(event.runners[0]?.price).toBe(1.72);
     expect(event.runners[1]?.id).toBe('evt1:h2h:1');
+    const totals = events[1] as OddsFeedEvent;
+    expect(totals.market).toBe('totals:2.5');
+    expect(totals.runners.map((r) => r.label)).toEqual(['Over', 'Under']);
   });
 
   it('throws on a non-ok response', async () => {
@@ -57,7 +67,7 @@ describe('the-odds-api adapter', () => {
     const adapter = createTheOddsApiAdapter({ apiKey: 'k', fetchImpl: fetchOk });
     const events = await adapter.fetchEvents('soccer_epl');
     const fair = toFairMarkets(events);
-    expect(fair).toHaveLength(1);
+    expect(fair).toHaveLength(2);
     const market = fair[0]?.fair;
     expect(market?.method).toBe('shin');
     expect(market?.margin).toBeGreaterThan(0);

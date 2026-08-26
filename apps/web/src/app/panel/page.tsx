@@ -3,6 +3,9 @@
 import Link from 'next/link';
 import { decimalToAmerican } from '@devigo/core';
 import { formatMoney, formatOdds, formatPercent, getDictionary, LOCALE_META } from '@devigo/i18n';
+import { HelpModal, useHelpModal } from '@/components/help-modal';
+import { InfoTip } from '@/components/info-tip';
+import { LegPriceInput } from '@/components/leg-price-input';
 import { LangSwitch } from '@/components/lang-switch';
 import { Wordmark } from '@/components/logo';
 import { useLocale } from '@/lib/locale';
@@ -15,6 +18,7 @@ export default function PanelPage() {
   const [locale, setLocale] = useLocale();
   const t = getDictionary(locale);
   const panel = usePanel(locale);
+  const help = useHelpModal();
   const { analysis, simulation } = panel;
 
   const num = (v: number) => formatOdds(locale, v);
@@ -116,6 +120,13 @@ export default function PanelPage() {
               <div className="flex shrink-0 gap-1.5">
                 <button
                   type="button"
+                  onClick={help.show}
+                  className="min-h-[32px] cursor-pointer rounded-[7px] border border-[#27272a] bg-transparent px-2.5 py-1.5 font-mono text-[11px] text-[#71717a] hover:border-[#3f3f46] hover:text-[#f4f4f5]"
+                >
+                  ?
+                </button>
+                <button
+                  type="button"
                   onClick={panel.cycleMethod}
                   className="min-h-[32px] cursor-pointer rounded-[7px] border border-[#27272a] bg-[#18181b] px-2.5 py-1.5 font-mono text-[11px] text-[#a1a1aa] hover:border-[#3f3f46] hover:text-[#f4f4f5]"
                 >
@@ -209,7 +220,17 @@ export default function PanelPage() {
                         </div>
                       </div>
                       <div className="flex shrink-0 items-center gap-2">
-                        <span className="font-mono text-[13.5px] font-semibold">{num(leg.price)}</span>
+                        {leg.manual && (
+                          <span className="rounded border border-risk-border px-1 py-[1px] font-mono text-[9px] text-risk">
+                            {t.help.manualTag}
+                          </span>
+                        )}
+                        <LegPriceInput
+                          feedPrice={leg.feedPrice}
+                          manual={leg.manual}
+                          label={t.help.manualPrice}
+                          onOverride={(price) => panel.setPriceOverride(leg.id, price)}
+                        />
                         <button
                           type="button"
                           onClick={() => panel.remove(leg.id)}
@@ -245,7 +266,7 @@ export default function PanelPage() {
                 <span className="w-[66px] text-right font-mono text-[13px] font-semibold">{money(panel.stake)}</span>
               </div>
               <div className="flex items-center gap-2.5">
-                <span className="w-[62px] text-[11.5px] text-[#71717a]">{t.ticket.correlation}</span>
+                <span className="flex w-[62px] items-center gap-1 text-[11.5px] text-[#71717a]">{t.ticket.correlation} <InfoTip tip={t.help.corr} /></span>
                 <input
                   type="range" min={0} max={60} step={5} value={panel.corr}
                   onChange={(e) => panel.setCorr(Number(e.target.value))}
@@ -261,17 +282,17 @@ export default function PanelPage() {
           <section className="overflow-hidden rounded-[14px] border border-edge bg-raised">
             <div className="grid grid-cols-2">
               <div className="border-b border-r border-edge px-4 py-3.5">
-                <div className="text-[10.5px] uppercase tracking-[.05em] text-[#71717a]">{t.stats.combinedPrice}</div>
+                <div className="flex items-center gap-1.5 text-[10.5px] uppercase tracking-[.05em] text-[#71717a]">{t.stats.combinedPrice} <InfoTip tip={t.help.combined} /></div>
                 <div className="mt-1 font-mono text-2xl font-semibold">{analysis ? num(analysis.combinedPrice) : '—'}</div>
                 <div className="mt-[2px] font-mono text-[11px] text-[#52525b]">{analysis ? americanStr(analysis.combinedPrice) : t.stats.noLegs}</div>
               </div>
               <div className="border-b border-edge px-4 py-3.5">
-                <div className="text-[10.5px] uppercase tracking-[.05em] text-[#71717a]">{t.stats.fairPrice}</div>
+                <div className="flex items-center gap-1.5 text-[10.5px] uppercase tracking-[.05em] text-[#71717a]">{t.stats.fairPrice} <InfoTip tip={t.help.fair} /></div>
                 <div className="mt-1 font-mono text-2xl font-semibold text-model">{analysis ? num(1 / analysis.jointProbability) : '—'}</div>
                 <div className="mt-[2px] font-mono text-[11px] text-[#52525b]">{analysis ? t.stats.joint(pct(analysis.jointProbability, 2)) : '—'}</div>
               </div>
               <div className="border-b border-r border-edge px-4 py-3.5">
-                <div className="text-[10.5px] uppercase tracking-[.05em] text-[#71717a]">{t.stats.expectedValue}</div>
+                <div className="flex items-center gap-1.5 text-[10.5px] uppercase tracking-[.05em] text-[#71717a]">{t.stats.expectedValue} <InfoTip tip={t.help.ev} /></div>
                 <div className="mt-1 font-mono text-2xl font-semibold" style={{ color: analysis ? (good ? '#34d399' : '#f43f5e') : '#52525b' }}>
                   {analysis ? (analysis.expectedValue >= 0 ? '+' : '') + money(analysis.expectedValue * panel.stake) : '—'}
                 </div>
@@ -280,8 +301,8 @@ export default function PanelPage() {
                 </div>
               </div>
               <div className="border-b border-edge px-4 py-3.5">
-                <div className="text-[10.5px] uppercase tracking-[.05em] text-[#71717a]">
-                  {t.stats.kelly} ({Math.round(KELLY_MULTIPLIER * 100)}%)
+                <div className="flex items-center gap-1.5 text-[10.5px] uppercase tracking-[.05em] text-[#71717a]">
+                  {t.stats.kelly} ({Math.round(KELLY_MULTIPLIER * 100)}%) <InfoTip tip={t.help.kelly} />
                 </div>
                 <div className="mt-1 font-mono text-2xl font-semibold text-[#f4f4f5]">{analysis ? money(analysis.kellyFraction * panel.bankroll) : '—'}</div>
                 <div className="mt-[2px] font-mono text-[11px] text-[#52525b]">{analysis ? t.stats.ofBankroll(pct(analysis.kellyFraction, 2)) : '—'}</div>
@@ -290,7 +311,7 @@ export default function PanelPage() {
 
             <div className="px-4 py-3.5">
               <div className="flex items-center justify-between">
-                <span className="text-[11px] uppercase tracking-[.05em] text-[#71717a]">{t.sim.title}</span>
+                <span className="flex items-center gap-1.5 text-[11px] uppercase tracking-[.05em] text-[#71717a]">{t.sim.title} <InfoTip tip={t.help.mc} /></span>
                 <span className="font-mono text-[11px] text-[#a1a1aa]">{simulation ? t.sim.hit(pct(simulation.hitRate, 2)) : '—'}</span>
               </div>
               <div className="mt-3 flex h-16 items-end gap-[2px]">
@@ -316,6 +337,7 @@ export default function PanelPage() {
           </section>
         </aside>
       </div>
+      <HelpModal t={t} open={help.open} onClose={help.close} />
     </div>
   );
 }

@@ -92,7 +92,11 @@ export interface PanelState {
   readonly methodShort: string;
   readonly cycleMethod: () => void;
   readonly selected: ReadonlyArray<string>;
-  readonly legs: ReadonlyArray<Leg & { matchup: string; book: string; commission: number }>;
+  readonly legs: ReadonlyArray<
+    Leg & { matchup: string; book: string; commission: number; manual: boolean; feedPrice: number }
+  >;
+  /** Override a leg's price with the odds your own book offers (null clears it). */
+  readonly setPriceOverride: (id: string, price: number | null) => void;
   readonly toggle: (id: string) => void;
   readonly remove: (id: string) => void;
   readonly clear: () => void;
@@ -116,6 +120,7 @@ export const usePanel = (locale: Locale): PanelState => {
   const [markets, setMarkets] = useState<ReadonlyArray<NormalizedMarket>>(DEMO_MARKETS);
   const [source, setSource] = useState<'live' | 'demo'>('demo');
   const [selected, setSelected] = useState<ReadonlyArray<string>>([]);
+  const [overrides, setOverrides] = useState<Readonly<Record<string, number>>>({});
   const [stake, setStake] = useState(25);
   const [corr, setCorr] = useState(0);
   const [methodIndex, setMethodIndex] = useState(0);
@@ -149,6 +154,7 @@ export const usePanel = (locale: Locale): PanelState => {
         setMarkets(data.markets);
         setSource('live');
         setSelected([]);
+        setOverrides({});
       })
       .catch(() => {
         // feed unreachable — stay on demo fixture
@@ -231,17 +237,21 @@ export const usePanel = (locale: Locale): PanelState => {
       selected.flatMap((id) => {
         const runner = allRunners.find((r) => r.id === id);
         if (!runner) return [];
+        const override = overrides[id];
+        const manual = typeof override === 'number' && override > 1;
         return [{
           id: runner.id,
           label: runner.label,
           matchup: runner.matchup,
-          book: runner.book,
-          commission: runner.commission,
-          price: runner.price,
+          book: manual ? '' : runner.book,
+          commission: manual ? 0 : runner.commission,
+          manual,
+          price: manual ? override : runner.price,
+          feedPrice: runner.price,
           fairProbability: runner.fairProbability,
         }];
       }),
-    [selected, allRunners],
+    [selected, allRunners, overrides],
   );
 
   const correlation = useMemo(() => uniformCorrelation(legs.length, corr / 100), [legs.length, corr]);
@@ -277,7 +287,17 @@ export const usePanel = (locale: Locale): PanelState => {
     toggle: (id) =>
       setSelected((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id])),
     remove: (id) => setSelected((prev) => prev.filter((x) => x !== id)),
-    clear: () => setSelected([]),
+    clear: () => {
+      setSelected([]);
+      setOverrides({});
+    },
+    setPriceOverride: (id, price) =>
+      setOverrides((prev) => {
+        const next = { ...prev };
+        if (price === null || !Number.isFinite(price) || price <= 1) delete next[id];
+        else next[id] = Math.min(price, 1000);
+        return next;
+      }),
     autoBuild: () =>
       setSelected(allRunners.filter((r) => r.edge >= MIN_EDGE).slice(0, 4).map((r) => r.id)),
     stake,
