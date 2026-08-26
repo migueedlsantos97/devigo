@@ -27,7 +27,11 @@ export default function PanelPage() {
   const help = useHelpModal();
   const history = useHistory();
   const [justSaved, setJustSaved] = useState(false);
+  const [goalInput, setGoalInput] = useState('');
+  const [goalBuilt, setGoalBuilt] = useState(false);
   const { analysis, simulation } = panel;
+  const goalAmount = Number(goalInput);
+  const hasGoal = Number.isFinite(goalAmount) && goalAmount > 0 && goalBuilt;
 
   const saveTicket = (): void => {
     if (!analysis) return;
@@ -266,6 +270,42 @@ export default function PanelPage() {
                   {t.ticket.clear}
                 </button>
               </div>
+            </div>
+
+            <div className="border-b border-hairline px-4 py-3.5">
+              <div className="flex items-center gap-2.5">
+                <span className="flex w-[90px] shrink-0 items-center gap-1 text-[11.5px] text-[#71717a]">
+                  {t.ticket.goalLabel} <InfoTip tip={t.ticket.goalHelp} />
+                </span>
+                <input
+                  type="number"
+                  min={1}
+                  step={10}
+                  placeholder={t.ticket.goalPlaceholder}
+                  value={goalInput}
+                  onChange={(e) => { setGoalInput(e.target.value); setGoalBuilt(false); }}
+                  onKeyDown={(e) => { if (e.key === 'Enter' && goalAmount > 0) { panel.buildForGoal(goalAmount); setGoalBuilt(true); } }}
+                  className="min-h-[36px] w-0 flex-1 rounded-[9px] border border-ctrl bg-transparent px-3 font-mono text-[13px] outline-none focus:border-[#3f3f46] [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                />
+                <button
+                  type="button"
+                  disabled={!(goalAmount > 0)}
+                  onClick={() => { panel.buildForGoal(goalAmount); setGoalBuilt(true); }}
+                  className="min-h-[36px] shrink-0 cursor-pointer rounded-[9px] border border-ev bg-ev px-3.5 font-mono text-[11px] font-semibold text-ev-on hover:bg-ev-light disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  {t.ticket.goalBuild}
+                </button>
+              </div>
+              {hasGoal && analysis && (
+                <p
+                  className="m-0 mt-2.5 text-[12px] leading-[1.5]"
+                  style={{ color: panel.stake * analysis.combinedPrice - panel.stake >= goalAmount * 0.999 ? '#34d399' : '#f59e0b' }}
+                >
+                  {panel.stake * analysis.combinedPrice - panel.stake >= goalAmount * 0.999
+                    ? t.ticket.goalReached(money(panel.stake * analysis.combinedPrice - panel.stake))
+                    : t.ticket.goalShort(money(goalAmount), money(panel.stake * analysis.combinedPrice - panel.stake))}
+                </p>
+              )}
             </div>
 
             {panel.legs.length === 0 && (

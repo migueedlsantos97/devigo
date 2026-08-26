@@ -40,6 +40,9 @@ export interface Dictionary {
   readonly ticket: {
     title: string; empty: string; clear: string; stake: string; correlation: string;
     legs: (n: number) => string; emptyLegs: string;
+    goalLabel: string; goalPlaceholder: string; goalBuild: string; goalHelp: string;
+    goalReached: (amount: string) => string;
+    goalShort: (target: string, achieved: string) => string;
   };
   readonly stats: {
     combinedPrice: string; fairPrice: string; expectedValue: string; kelly: string;
@@ -223,6 +226,12 @@ const es: Dictionary = {
     clear: 'VACIAR', stake: 'Importe', correlation: 'Correl.',
     legs: (n) => n + (n === 1 ? ' selección' : ' selecciones'),
     emptyLegs: 'vacío',
+    goalLabel: 'Quiero ganar',
+    goalPlaceholder: 'ej. 500',
+    goalBuild: 'ARMAR',
+    goalHelp: 'Escribe cuánto querés ganar si acierta todo. Devigo arma la combinada con las selecciones de más valor hasta acercarse a esa cifra — después podés sumar o quitar líneas y ves en vivo si seguís llegando al objetivo.',
+    goalReached: (amount) => '✓ Con esta combinada ganarías ' + amount + ' o más.',
+    goalShort: (target, achieved) => 'Con esta combinada ganarías ' + achieved + '. Sumá selecciones para llegar a ' + target + '.',
   },
   stats: {
     combinedPrice: 'Cuota combinada', fairPrice: 'Cuota justa', expectedValue: 'Valor esperado', kelly: 'Kelly',
@@ -417,6 +426,12 @@ const en: Dictionary = {
     clear: 'CLEAR', stake: 'Stake', correlation: 'Corr.',
     legs: (n) => n + (n === 1 ? ' leg' : ' legs'),
     emptyLegs: 'empty',
+    goalLabel: 'I want to win',
+    goalPlaceholder: 'e.g. 500',
+    goalBuild: 'BUILD',
+    goalHelp: "Type how much you want to win if every leg lands. Devigo builds the parlay from the best-value selections to get close to that figure — then add or drop legs and watch live whether you're still on track.",
+    goalReached: (amount) => '✓ This parlay would win you ' + amount + ' or more.',
+    goalShort: (target, achieved) => 'This parlay would win you ' + achieved + '. Add more legs to reach ' + target + '.',
   },
   stats: {
     combinedPrice: 'Combined price', fairPrice: 'Fair price', expectedValue: 'Expected value', kelly: 'Kelly',

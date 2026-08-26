@@ -4,6 +4,7 @@ import { useDeferredValue, useEffect, useMemo, useState } from 'react';
 import {
   analyzeTicket,
   bookMargin,
+  buildTicketForTarget,
   consensusProbabilities,
   devig,
   simulateTicket,
@@ -105,6 +106,8 @@ export interface PanelState {
   readonly remove: (id: string) => void;
   readonly clear: () => void;
   readonly autoBuild: () => void;
+  /** Builds a parlay from the best-value selections aiming for a target profit. Returns whether it was reachable. */
+  readonly buildForGoal: (targetProfit: number) => boolean;
   readonly stake: number;
   readonly setStake: (v: number) => void;
   readonly corr: number;
@@ -327,6 +330,21 @@ export const usePanel = (locale: Locale): PanelState => {
       }),
     autoBuild: () =>
       setSelected(allRunners.filter((r) => r.edge >= MIN_EDGE).slice(0, 4).map((r) => r.id)),
+    buildForGoal: (targetProfit) => {
+      if (!Number.isFinite(targetProfit) || targetProfit <= 0 || board.length === 0) return false;
+      const candidates = board.flatMap((market) =>
+        market.runners.map((r) => ({
+          id: r.id,
+          marketKey: market.id,
+          price: r.price,
+          fairProbability: r.fairProbability,
+        })),
+      );
+      const targetPrice = 1 + targetProfit / stake;
+      const result = buildTicketForTarget(candidates, targetPrice, 15);
+      setSelected(result.legIds);
+      return result.reached;
+    },
     stake,
     setStake,
     corr,
