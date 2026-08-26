@@ -3,10 +3,12 @@
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { combinePrices } from '@devigo/core';
-import { formatMoney, formatOdds, formatPercent, getDictionary } from '@devigo/i18n';
+import { formatOdds, formatPercent, getDictionary } from '@devigo/i18n';
+import { CurrencySelect } from '@/components/currency-select';
 import { LangSwitch } from '@/components/lang-switch';
 import { Wordmark } from '@/components/logo';
 import { InfoTip } from '@/components/info-tip';
+import { formatCurrency, isKnownCurrency, useCurrency } from '@/lib/currency';
 import { useLocale } from '@/lib/locale';
 
 interface ScanLeg {
@@ -55,11 +57,11 @@ const toJpegBase64 = (file: File): Promise<{ data: string; mediaType: string }> 
 
 export default function ScanPage() {
   const [locale, setLocale] = useLocale();
+  const [currency, setCurrency] = useCurrency(locale);
   const t = getDictionary(locale);
   const [phase, setPhase] = useState<Phase>({ kind: 'idle' });
   const [legs, setLegs] = useState<ScanLeg[]>([]);
   const [stake, setStake] = useState(300);
-  const [currency, setCurrency] = useState<string | null>(null);
   const [slipTotal, setSlipTotal] = useState<number | null>(null);
   const [vig, setVig] = useState(3);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -86,13 +88,13 @@ export default function ScanPage() {
       };
       setLegs(data.legs);
       if (data.stake) setStake(data.stake);
-      setCurrency(data.currency);
+      if (data.currency && isKnownCurrency(data.currency)) setCurrency(data.currency);
       setSlipTotal(data.totalOdds);
       setPhase({ kind: 'done' });
     } catch {
       setPhase({ kind: 'error', key: 'errorGeneric' });
     }
-  }, []);
+  }, [setCurrency]);
 
   useEffect(() => {
     const onPaste = (e: ClipboardEvent): void => {
@@ -104,8 +106,7 @@ export default function ScanPage() {
     return () => window.removeEventListener('paste', onPaste);
   }, [analyze]);
 
-  const money = (v: number): string =>
-    currency ? `${currency} ${new Intl.NumberFormat(locale === 'es' ? 'es-ES' : 'en-US', { maximumFractionDigits: 0 }).format(v)}` : formatMoney(locale, v);
+  const money = (v: number): string => formatCurrency(v, currency);
   const pct = (v: number, d = 2) => formatPercent(locale, v, d);
   const num = (v: number) => formatOdds(locale, v);
 
@@ -128,6 +129,7 @@ export default function ScanPage() {
         <Link href="/" className="shrink-0"><Wordmark compact /></Link>
         <div className="flex items-center gap-3.5">
           <LangSwitch locale={locale} onChange={setLocale} />
+          <CurrencySelect value={currency} onChange={setCurrency} label={t.currencyLabel} />
           <Link href="/panel" className="inline-flex min-h-[36px] shrink-0 items-center whitespace-nowrap rounded-lg bg-ev px-[15px] py-2 text-[12.5px] font-semibold text-ev-on hover:bg-ev-light">
             {t.scan.toPanel}
           </Link>
@@ -236,7 +238,7 @@ export default function ScanPage() {
                     onChange={(e) => setStake(Math.max(1, Number(e.target.value) || 1))}
                     className="w-[100px] rounded-md border border-ctrl bg-transparent px-2 py-1 text-right font-mono text-[13px] font-semibold outline-none focus:border-[#3f3f46] [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                   />
-                  <span className="font-mono text-xs text-[#71717a]">{currency ?? ''}</span>
+                  <span className="font-mono text-xs text-[#71717a]">{currency}</span>
                 </div>
                 <div className="flex items-center gap-2.5">
                   <span className="flex w-[130px] items-center gap-1 text-[11.5px] text-[#71717a]">{t.scan.vig} <InfoTip tip={t.scan.vigHelp} /></span>
@@ -250,15 +252,21 @@ export default function ScanPage() {
               </div>
             </section>
 
-            <section className="grid grid-cols-2 gap-2 md:grid-cols-3">
+            <section className="grid grid-cols-2 gap-2">
               <div className="rounded-xl border border-edge bg-raised px-4 py-3.5">
-                <div className="text-[10.5px] uppercase tracking-[.05em] text-[#71717a]">{t.scan.paid}</div>
-                <div className="mt-1 font-mono text-[22px] font-semibold">{num(analysis.combined)}</div>
+                <div className="text-[10.5px] uppercase tracking-[.05em] text-[#71717a]">{t.scan.payout}</div>
+                <div className="mt-1 font-mono text-[24px] font-semibold">{money(stake * analysis.combined)}</div>
+                <div className="mt-[2px] font-mono text-[11px] text-[#52525b]">{t.scan.paid} {num(analysis.combined)}</div>
               </div>
               <div className="rounded-xl border border-edge bg-raised px-4 py-3.5">
-                <div className="text-[10.5px] uppercase tracking-[.05em] text-[#71717a]">{t.scan.fairRange}</div>
-                <div className="mt-1 font-mono text-[22px] font-semibold text-model">{num(analysis.fairLo)}–{num(analysis.fairHi)}</div>
+                <div className="text-[10.5px] uppercase tracking-[.05em] text-model">{t.scan.fairPayout}</div>
+                <div className="mt-1 font-mono text-[24px] font-semibold text-model">
+                  {money(stake * analysis.fairLo)}–{money(stake * analysis.fairHi)}
+                </div>
+                <div className="mt-[2px] font-mono text-[11px] text-[#52525b]">{t.scan.fairRange} {num(analysis.fairLo)}–{num(analysis.fairHi)}</div>
               </div>
+            </section>
+            <section className="grid grid-cols-2 gap-2 md:grid-cols-4">
               <div className="rounded-xl border border-edge bg-raised px-4 py-3.5">
                 <div className="text-[10.5px] uppercase tracking-[.05em] text-[#71717a]">{t.scan.probPaid}</div>
                 <div className="mt-1 font-mono text-[22px] font-semibold">{pct(analysis.pPaid, 2)}</div>
@@ -290,7 +298,7 @@ export default function ScanPage() {
             <div className="flex gap-2.5">
               <button
                 type="button"
-                onClick={() => { setPhase({ kind: 'idle' }); setLegs([]); setSlipTotal(null); setCurrency(null); }}
+                onClick={() => { setPhase({ kind: 'idle' }); setLegs([]); setSlipTotal(null); }}
                 className="min-h-[42px] cursor-pointer rounded-[10px] border border-[#27272a] bg-transparent px-[18px] text-[13.5px] font-medium text-[#f4f4f5] hover:border-[#3f3f46]"
               >
                 {t.scan.again}

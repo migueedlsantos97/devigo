@@ -88,6 +88,10 @@ export const histogramBars = (
 export interface PanelState {
   readonly source: 'live' | 'demo';
   readonly board: ReadonlyArray<BoardMarket>;
+  /** Distinct leagues on the full board with their market counts, in board order. */
+  readonly leagues: ReadonlyArray<{ league: string; count: number }>;
+  readonly leagueFilter: string | null;
+  readonly setLeagueFilter: (league: string | null) => void;
   readonly method: VigMethod;
   readonly methodShort: string;
   readonly cycleMethod: () => void;
@@ -125,6 +129,7 @@ export const usePanel = (locale: Locale): PanelState => {
   const [corr, setCorr] = useState(0);
   const [methodIndex, setMethodIndex] = useState(0);
   const [bankroll, setBankrollState] = useState(DEFAULT_BANKROLL);
+  const [leagueFilter, setLeagueFilter] = useState<string | null>(null);
 
   useEffect(() => {
     try {
@@ -276,9 +281,18 @@ export const usePanel = (locale: Locale): PanelState => {
     [analysis, simulation, stake],
   );
 
+  const leagues = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const market of board) counts.set(market.league, (counts.get(market.league) ?? 0) + 1);
+    return [...counts.entries()].map(([league, count]) => ({ league, count }));
+  }, [board]);
+
   return {
     source,
-    board,
+    board: leagueFilter === null ? board : board.filter((m) => m.league === leagueFilter),
+    leagues,
+    leagueFilter,
+    setLeagueFilter,
     method: method.key,
     methodShort: method.short,
     cycleMethod: () => setMethodIndex((i) => (i + 1) % METHODS.length),

@@ -2,12 +2,15 @@
 
 import Link from 'next/link';
 import { decimalToAmerican } from '@devigo/core';
-import { formatMoney, formatOdds, formatPercent, getDictionary, LOCALE_META } from '@devigo/i18n';
+import { formatOdds, formatPercent, getDictionary, LOCALE_META } from '@devigo/i18n';
+import { CurrencySelect } from '@/components/currency-select';
 import { HelpModal, useHelpModal } from '@/components/help-modal';
 import { InfoTip } from '@/components/info-tip';
+import { LeagueChip } from '@/components/league-badge';
 import { LegPriceInput } from '@/components/leg-price-input';
 import { LangSwitch } from '@/components/lang-switch';
 import { Wordmark } from '@/components/logo';
+import { formatCurrency, useCurrency } from '@/lib/currency';
 import { useLocale } from '@/lib/locale';
 import { KELLY_MULTIPLIER, MIN_EDGE, SIM_BANKROLL } from '@/lib/markets';
 import { usePanel } from '@/lib/ticket-store';
@@ -16,6 +19,7 @@ const survivalColor = (p: number): string => (p > 0.4 ? '#34d399' : p > 0.15 ? '
 
 export default function PanelPage() {
   const [locale, setLocale] = useLocale();
+  const [currency, setCurrency] = useCurrency(locale);
   const t = getDictionary(locale);
   const panel = usePanel(locale);
   const help = useHelpModal();
@@ -23,7 +27,7 @@ export default function PanelPage() {
 
   const num = (v: number) => formatOdds(locale, v);
   const pct = (v: number, d = 2) => formatPercent(locale, v, d);
-  const money = (v: number) => formatMoney(locale, v);
+  const money = (v: number) => formatCurrency(v, currency);
   const intFmt = new Intl.NumberFormat(LOCALE_META[locale].bcp47);
 
   const good = analysis !== null && analysis.expectedValue > 0;
@@ -82,6 +86,7 @@ export default function PanelPage() {
             )}
           </div>
           <LangSwitch locale={locale} onChange={setLocale} />
+          <CurrencySelect value={currency} onChange={setCurrency} label={t.currencyLabel} />
           <label className="hidden shrink-0 items-center gap-2 whitespace-nowrap rounded-lg border border-ctrl py-[5px] pl-2.5 pr-2.5 sm:flex">
             <span className="text-xs text-[#71717a]">{t.bankrollLabel}</span>
             <input
@@ -93,13 +98,34 @@ export default function PanelPage() {
               className="w-[84px] border-none bg-transparent text-right font-mono text-xs text-[#f4f4f5] outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
               aria-label={t.bankrollLabel}
             />
-            <span className="font-mono text-xs text-[#71717a]">{LOCALE_META[locale].currency === 'EUR' ? '€' : '$'}</span>
+            <span className="font-mono text-xs text-[#71717a]">{currency}</span>
           </label>
         </div>
       </header>
 
       <div className="grid grid-cols-1 items-start gap-5 p-4 pb-10 panel:grid-cols-[minmax(0,1fr)_400px] md:px-7 md:pt-5">
         <main className="flex min-w-0 flex-col gap-4">
+          {panel.leagues.length > 1 && (
+            <div className="flex flex-wrap items-center gap-2">
+              <LeagueChip
+                league={null}
+                label={t.board.allLeagues}
+                count={panel.leagues.reduce((sum, l) => sum + l.count, 0)}
+                active={panel.leagueFilter === null}
+                onClick={() => panel.setLeagueFilter(null)}
+              />
+              {panel.leagues.map((l) => (
+                <LeagueChip
+                  key={l.league}
+                  league={l.league}
+                  count={l.count}
+                  active={panel.leagueFilter === l.league}
+                  onClick={() => panel.setLeagueFilter(panel.leagueFilter === l.league ? null : l.league)}
+                />
+              ))}
+            </div>
+          )}
+
           <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
             {kpis.map((kpi) => (
               <div key={kpi.label} className="rounded-xl border border-edge bg-raised px-4 py-3.5">
@@ -284,7 +310,11 @@ export default function PanelPage() {
               <div className="border-b border-r border-edge px-4 py-3.5">
                 <div className="flex items-center gap-1.5 text-[10.5px] uppercase tracking-[.05em] text-[#71717a]">{t.stats.combinedPrice} <InfoTip tip={t.help.combined} /></div>
                 <div className="mt-1 font-mono text-2xl font-semibold">{analysis ? num(analysis.combinedPrice) : '—'}</div>
-                <div className="mt-[2px] font-mono text-[11px] text-[#52525b]">{analysis ? americanStr(analysis.combinedPrice) : t.stats.noLegs}</div>
+                <div className="mt-[2px] font-mono text-[11px] text-[#52525b]">
+                  {analysis
+                    ? `${americanStr(analysis.combinedPrice)} · ${t.stats.payout(money(panel.stake * analysis.combinedPrice))}`
+                    : t.stats.noLegs}
+                </div>
               </div>
               <div className="border-b border-edge px-4 py-3.5">
                 <div className="flex items-center gap-1.5 text-[10.5px] uppercase tracking-[.05em] text-[#71717a]">{t.stats.fairPrice} <InfoTip tip={t.help.fair} /></div>

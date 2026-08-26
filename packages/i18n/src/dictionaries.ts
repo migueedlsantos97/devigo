@@ -44,6 +44,7 @@ export interface Dictionary {
   readonly stats: {
     combinedPrice: string; fairPrice: string; expectedValue: string; kelly: string;
     joint: (v: string) => string; perUnit: (v: string) => string; ofBankroll: (v: string) => string; noLegs: string;
+    payout: (v: string) => string;
   };
   readonly sim: {
     title: string; hit: (v: string) => string;
@@ -54,7 +55,9 @@ export interface Dictionary {
     kpiScanned: string; kpiValueFound: string; kpiAvgMargin: string; kpiModel: string;
     margin: (v: string) => string; detail: (fair: string, edge: string) => string;
     books: (n: number) => string;
+    allLeagues: string;
   };
+  readonly currencyLabel: string;
   readonly methods: { shin: string; multiplicative: string; additive: string };
   readonly verdict: {
     positive: (edge: string) => string; heavy: (hit: string) => string; sized: string;
@@ -91,6 +94,8 @@ export interface Dictionary {
     readonly vig: string;
     readonly vigHelp: string;
     readonly paid: string;
+    readonly payout: string;
+    readonly fairPayout: string;
     readonly fairRange: string;
     readonly probPaid: string;
     readonly probReal: string;
@@ -189,6 +194,7 @@ const es: Dictionary = {
     combinedPrice: 'Cuota combinada', fairPrice: 'Cuota justa', expectedValue: 'Valor esperado', kelly: 'Kelly',
     joint: (v) => 'conjunta ' + v, perUnit: (v) => v + ' por unidad', ofBankroll: (v) => v + ' del capital',
     noLegs: 'sin selecciones',
+    payout: (v) => 'paga ' + v,
   },
   sim: {
     title: 'Montecarlo · 10.000 tiradas', hit: (v) => 'acierto ' + v,
@@ -201,7 +207,9 @@ const es: Dictionary = {
     margin: (v) => 'margen ' + v,
     detail: (fair, edgeStr) => 'justa ' + fair + ' · ' + edgeStr,
     books: (n) => n + (n === 1 ? ' casa' : ' casas'),
+    allLeagues: 'Todas',
   },
+  currencyLabel: 'Moneda',
   methods: { shin: 'el método de Shin', multiplicative: 'reparto proporcional', additive: 'reparto aditivo' },
   verdict: {
     positive: (edgeStr) => 'Expectativa positiva: ' + edgeStr + ' de ventaja sobre la línea justa.',
@@ -246,6 +254,8 @@ const es: Dictionary = {
     vig: 'Margen por línea',
     vigHelp: 'Comisión que la casa esconde en cada cuota. En cuotas cortas de combinada suele ser 2–4% por lado. Mueve el deslizador para ver el rango.',
     paid: 'Te pagan',
+    payout: 'Premio si acierta',
+    fairPayout: 'Pagaría un mercado justo',
     fairRange: 'Cuota justa',
     probPaid: 'Prob. que te pagan',
     probReal: 'Prob. real estimada',
@@ -344,6 +354,7 @@ const en: Dictionary = {
     combinedPrice: 'Combined price', fairPrice: 'Fair price', expectedValue: 'Expected value', kelly: 'Kelly',
     joint: (v) => 'joint ' + v, perUnit: (v) => v + ' per unit', ofBankroll: (v) => v + ' of bankroll',
     noLegs: 'no legs',
+    payout: (v) => 'pays ' + v,
   },
   sim: {
     title: 'Monte Carlo · 10,000 runs', hit: (v) => 'hit ' + v,
@@ -356,7 +367,9 @@ const en: Dictionary = {
     margin: (v) => 'margin ' + v,
     detail: (fair, edgeStr) => 'fair ' + fair + ' · ' + edgeStr,
     books: (n) => n + (n === 1 ? ' book' : ' books'),
+    allLeagues: 'All',
   },
+  currencyLabel: 'Currency',
   methods: { shin: "Shin's method", multiplicative: 'proportional de-vig', additive: 'additive de-vig' },
   verdict: {
     positive: (edgeStr) => 'Positive expectation: ' + edgeStr + ' edge over the fair line.',
@@ -401,6 +414,8 @@ const en: Dictionary = {
     vig: 'Margin per leg',
     vigHelp: 'Commission the book hides in each price. On short parlay prices it is typically 2–4% per side. Move the slider to see the range.',
     paid: 'You are paid',
+    payout: 'Payout if it lands',
+    fairPayout: 'A fair market would pay',
     fairRange: 'Fair odds',
     probPaid: 'Implied probability',
     probReal: 'Estimated real probability',
