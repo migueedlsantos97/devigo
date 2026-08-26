@@ -12,7 +12,7 @@ export function LangSwitch({ locale, onChange }: { locale: Locale; onChange: (l:
             key={code}
             type="button"
             onClick={() => onChange(code)}
-            className={`cursor-pointer rounded-md border-none px-[9px] py-1 font-mono text-[10.5px] font-semibold ${
+            className={`min-h-[36px] min-w-[38px] cursor-pointer rounded-md border-none px-[9px] py-1 font-mono text-[10.5px] font-semibold ${
               active ? 'bg-ev text-ev-on' : 'bg-transparent text-[#71717a]'
             }`}
           >

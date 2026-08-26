@@ -39,3 +39,12 @@ body {
 .dv-pulse {
   animation: dv-pulse 2s ease-in-out infinite;
 }
+
+/* Filter strips scroll horizontally on phones; the scrollbar itself would eat
+   into an already tight sticky band. */
+.scrollbar-none {
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}

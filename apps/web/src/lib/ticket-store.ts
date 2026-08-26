@@ -18,6 +18,7 @@ import {
 } from '@devigo/core';
 import { LOCALE_META, type Locale } from '@devigo/i18n';
 import { localDateKey } from './date-groups';
+import { recordFairProbabilities, sparklineFor, type Sparkline } from './price-history';
 import {
   DEFAULT_BANKROLL,
   DEMO_MARKETS,
@@ -59,6 +60,8 @@ export interface BoardMarket {
   readonly margin: number;
   readonly bookCount: number;
   readonly runners: ReadonlyArray<BoardRunner>;
+  /** Observed movement of the favourite's fair probability; null until 3 samples exist. */
+  readonly spark: (Sparkline & { label: string }) | null;
 }
 
 export interface HistogramBar {
@@ -236,7 +239,7 @@ export const usePanel = (locale: Locale): PanelState => {
       hour: '2-digit',
       minute: '2-digit',
     });
-    return markets.map((mk) => {
+    const priced = markets.map((mk) => {
       const base = {
         id: mk.id,
         league: mk.league,
@@ -293,6 +296,17 @@ export const usePanel = (locale: Locale): PanelState => {
           edge: r.fairProbability * r.price - 1,
         })),
       };
+    });
+
+    // Record this reading, then draw each market's favourite from the history
+    // THIS device has observed. No history yet means no line — never a fake one.
+    const store = recordFairProbabilities(
+      priced.flatMap((mk) => mk.runners.map((r) => ({ runnerId: r.id, fairProbability: r.fairProbability }))),
+    );
+    return priced.map((mk) => {
+      const favourite = mk.runners.reduce((a, b) => (a.fairProbability > b.fairProbability ? a : b));
+      const line = sparklineFor(store, favourite.id);
+      return { ...mk, spark: line === null ? null : { ...line, label: favourite.label } };
     });
   }, [markets, locale, method.key]);
 

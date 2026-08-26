@@ -82,6 +82,7 @@ export interface Dictionary {
     scheduleTitle: string;
     scheduleSub: string;
     noMarkets: string;
+    sparkAria: (label: string) => string;
   };
   readonly currencyLabel: string;
   readonly methods: { shin: string; multiplicative: string; additive: string };
@@ -297,7 +298,7 @@ const es: Dictionary = {
     lose: (p) => 'Pierde ' + p + ' de las veces',
   },
   sim: {
-    title: 'Montecarlo · 10.000 tiradas', hit: (v) => 'acierto ' + v,
+    title: '10.000 boletos simulados', hit: (v) => 'cobran ' + v,
     p05: (v) => v + ' p05', median: (v) => 'mediana ' + v, p95: (v) => 'p95 ' + v,
   },
   board: {
@@ -319,6 +320,7 @@ const es: Dictionary = {
     scheduleTitle: 'Cronograma',
     scheduleSub: 'elige el día que quieres mirar',
     noMarkets: 'Ningún partido con esos filtros.',
+    sparkAria: (label) => 'Cómo se movió la probabilidad de ' + label + ' desde que lo seguís',
   },
   currencyLabel: 'Moneda',
   methods: { shin: 'el método de Shin', multiplicative: 'reparto proporcional', additive: 'reparto aditivo' },
@@ -344,7 +346,7 @@ const es: Dictionary = {
     ev: 'Ganancia o pérdida promedio de este boleto por cada vez que lo jugaras. Positivo (verde) = apuesta con valor; negativo (rojo) = regalas dinero.',
     kelly: 'Importe óptimo según el criterio de Kelly (fraccionado ¼ por prudencia). Apostar más que esto destruye capital a largo plazo aunque tengas ventaja.',
     corr: 'Si tus selecciones comparten desenlace (mismo partido, misma narrativa), no son independientes. Sube el deslizador y la probabilidad conjunta se ajusta.',
-    mc: 'El boleto se liquida 10.000 veces con un generador reproducible. p05/mediana/p95: el rango realista de resultados, no el premio del folleto.',
+    mc: 'Jugamos este mismo boleto 10.000 veces para ver cuántas cobra de verdad. Es el resultado realista, no el premio del folleto.',
     margin: 'Comisión que la casa esconde en las cuotas de este mercado. Media de las casas cotizadas.',
     manualPrice: 'Escribe la cuota que te ofrece tu casa para compararla contra el consenso',
     manualTag: 'MANUAL',
@@ -550,7 +552,7 @@ const en: Dictionary = {
     lose: (p) => 'Loses ' + p + ' of the time',
   },
   sim: {
-    title: 'Monte Carlo · 10,000 runs', hit: (v) => 'hit ' + v,
+    title: '10,000 simulated tickets', hit: (v) => v + ' cash',
     p05: (v) => v + ' p05', median: (v) => 'median ' + v, p95: (v) => 'p95 ' + v,
   },
   board: {
@@ -572,6 +574,7 @@ const en: Dictionary = {
     scheduleTitle: 'Schedule',
     scheduleSub: 'pick the day you want to look at',
     noMarkets: 'No games match those filters.',
+    sparkAria: (label) => 'How ' + label + "'s probability has moved since you started tracking it",
   },
   currencyLabel: 'Currency',
   methods: { shin: "Shin's method", multiplicative: 'proportional de-vig', additive: 'additive de-vig' },
@@ -597,7 +600,7 @@ const en: Dictionary = {
     ev: 'Average profit or loss of this ticket per play. Positive (green) = value bet; negative (red) = giving money away.',
     kelly: 'Optimal stake per the Kelly criterion (quarter-sized for prudence). Staking more destroys bankroll long-term even with an edge.',
     corr: 'Legs that share an outcome (same match, same script) are not independent. Raise the slider and the joint probability adjusts.',
-    mc: 'The ticket is settled 10,000 times with a reproducible generator. p05/median/p95: the realistic range of outcomes, not the flyer prize.',
+    mc: 'We play this exact ticket 10,000 times to see how often it really cashes. That is the realistic outcome, not the flyer prize.',
     margin: 'Commission the book hides inside this market’s prices. Average across quoted books.',
     manualPrice: 'Type the odds your book offers to compare them against the consensus',
     manualTag: 'MANUAL',

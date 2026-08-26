@@ -240,7 +240,9 @@ export default function PanelPage() {
         </div>
       </header>
 
-      <div className="sticky top-[60px] z-[19] flex flex-wrap items-center gap-0.5 overflow-x-auto border-b border-edge bg-band px-4 md:px-5">
+      {/* One scrolling row, never wrapping: on a phone six wrapped tabs stacked
+          into a 134px band that ate a quarter of the screen before any content. */}
+      <div className="scrollbar-none sticky top-[60px] z-[19] flex items-center gap-0.5 overflow-x-auto border-b border-edge bg-band px-4 md:px-5">
         <SportTab
           sport={null}
           label={t.board.allSports}
@@ -281,7 +283,7 @@ export default function PanelPage() {
                     type="button"
                     title={t.builder.styleHint[key]}
                     onClick={() => panel.setStyle(key)}
-                    className="flex cursor-pointer items-center gap-2 whitespace-nowrap rounded-full border px-3.5 py-2 text-[12.5px] font-semibold transition-colors hover:border-[#3f3f46]"
+                    className="flex min-h-[44px] cursor-pointer items-center gap-2 whitespace-nowrap rounded-full border px-3.5 py-2 text-[12.5px] font-semibold transition-colors hover:border-[#3f3f46]"
                     style={{
                       background: on ? (warn ? '#2a1f0a' : '#0d2a20') : '#141419',
                       borderColor: on ? (warn ? '#7a5410' : '#0f9d6e') : '#232329',
@@ -309,7 +311,7 @@ export default function PanelPage() {
                   value={goalInput}
                   onChange={(e) => setGoalInput(e.target.value)}
                   onKeyDown={(e) => { if (e.key === 'Enter') panel.buildForGoal(goalAmount); }}
-                  className="min-w-0 flex-1 border-none bg-transparent py-[11px] font-mono text-[13.5px] text-[#f4f4f5] outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                  className="min-h-[42px] min-w-0 flex-1 border-none bg-transparent py-[11px] font-mono text-[13.5px] text-[#f4f4f5] outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                 />
               </div>
               <button
@@ -337,7 +339,7 @@ export default function PanelPage() {
                   <span className="text-[12.5px] font-semibold text-[#d4d4d8]">{t.board.scheduleTitle}</span>
                   <span className="text-[11.5px] text-[#52525b]">{t.board.scheduleSub}</span>
                 </div>
-                <div className="flex flex-wrap gap-2">
+                <div className="scrollbar-none -mx-4 flex gap-2 overflow-x-auto px-4 md:mx-0 md:flex-wrap md:px-0">
                   <DayCard
                     weekday={t.board.allDates}
                     num={t.board.everyDay}
@@ -389,7 +391,7 @@ export default function PanelPage() {
                   <button
                     type="button"
                     onClick={() => setShowGlossary((v) => !v)}
-                    className="flex cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-[7px] border bg-[#18181b] px-2.5 py-1.5 font-mono text-[11px] hover:border-[#3f3f46] hover:text-[#f4f4f5]"
+                    className="flex min-h-[40px] cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-[7px] border bg-[#18181b] px-2.5 py-1.5 font-mono text-[11px] hover:border-[#3f3f46] hover:text-[#f4f4f5]"
                     style={{ color: showGlossary ? '#34d399' : '#a1a1aa', borderColor: showGlossary ? '#0f5c43' : '#27272a' }}
                   >
                     <Info size={13} strokeWidth={1.5} />
@@ -398,7 +400,7 @@ export default function PanelPage() {
                   <button
                     type="button"
                     onClick={panel.cycleMethod}
-                    className="flex cursor-pointer items-center gap-[7px] whitespace-nowrap rounded-[7px] border border-[#27272a] bg-[#18181b] px-2.5 py-1.5 font-mono text-[11px] text-[#a1a1aa] hover:border-[#3f3f46] hover:text-[#f4f4f5]"
+                    className="flex min-h-[40px] cursor-pointer items-center gap-[7px] whitespace-nowrap rounded-[7px] border border-[#27272a] bg-[#18181b] px-2.5 py-1.5 font-mono text-[11px] text-[#a1a1aa] hover:border-[#3f3f46] hover:text-[#f4f4f5]"
                   >
                     <Merge size={13} strokeWidth={1.5} />
                     {t.board.switchModel}
@@ -406,7 +408,7 @@ export default function PanelPage() {
                   <button
                     type="button"
                     onClick={help.show}
-                    className="flex cursor-pointer items-center rounded-[7px] border border-[#27272a] bg-transparent px-2.5 py-1.5 font-mono text-[11px] text-[#71717a] hover:border-[#3f3f46] hover:text-[#f4f4f5]"
+                    className="flex min-h-[40px] min-w-[40px] cursor-pointer items-center justify-center rounded-[7px] border border-[#27272a] bg-transparent px-2.5 py-1.5 font-mono text-[11px] text-[#71717a] hover:border-[#3f3f46] hover:text-[#f4f4f5]"
                     aria-label={t.help.open}
                   >
                     ?
@@ -462,6 +464,33 @@ export default function PanelPage() {
                         {market.marketName} · {t.board.margin(pct(market.margin, 2))}
                         {market.bookCount > 1 ? ` · ${t.board.books(market.bookCount)}` : ''}
                       </div>
+                      {market.spark !== null && (
+                        <div className="mt-[7px] flex items-center gap-2">
+                          <svg
+                            viewBox="0 0 108 24"
+                            preserveAspectRatio="none"
+                            className="h-6 w-[108px] overflow-visible"
+                            role="img"
+                            aria-label={t.board.sparkAria(market.spark.label)}
+                          >
+                            <path
+                              d={market.spark.d}
+                              fill="none"
+                              stroke={market.spark.delta >= 0 ? '#34d399' : '#f43f5e'}
+                              strokeWidth={1.5}
+                              strokeLinejoin="round"
+                              strokeLinecap="round"
+                            />
+                          </svg>
+                          <span className="whitespace-nowrap font-mono text-[10.5px] text-[#52525b]">{market.spark.label}</span>
+                          <span
+                            className="whitespace-nowrap rounded-[5px] border px-[5px] py-[1px] font-mono text-[10px] font-semibold"
+                            style={{ color: market.spark.delta >= 0 ? '#34d399' : '#f43f5e', borderColor: market.spark.delta >= 0 ? '#34d399' : '#f43f5e' }}
+                          >
+                            {(market.spark.delta >= 0 ? '+' : '−') + pct(Math.abs(market.spark.delta), 1)}
+                          </span>
+                        </div>
+                      )}
                     </div>
                     <div className="grid min-w-0 flex-[2_1_340px] grid-cols-[repeat(auto-fit,minmax(204px,1fr))] gap-2">
                       {market.runners.map((runner) => {
@@ -535,7 +564,7 @@ export default function PanelPage() {
                     <button
                       type="button"
                       onClick={saveTicket}
-                      className={`cursor-pointer border-none bg-transparent font-mono text-[10.5px] ${justSaved ? 'text-ev' : 'text-[#71717a] hover:text-ev'}`}
+                      className={`min-h-[36px] cursor-pointer border-none bg-transparent px-1 font-mono text-[10.5px] ${justSaved ? 'text-ev' : 'text-[#71717a] hover:text-ev'}`}
                     >
                       {justSaved ? t.history.saved : t.history.save}
                     </button>
@@ -543,7 +572,7 @@ export default function PanelPage() {
                   <button
                     type="button"
                     onClick={panel.clear}
-                    className="flex cursor-pointer items-center gap-1.5 border-none bg-transparent font-mono text-[10.5px] text-[#71717a] hover:text-danger"
+                    className="flex min-h-[36px] cursor-pointer items-center gap-1.5 border-none bg-transparent px-1 font-mono text-[10.5px] text-[#71717a] hover:text-danger"
                   >
                     <Trash2 size={12} strokeWidth={1.5} />
                     {t.ticket.clear}

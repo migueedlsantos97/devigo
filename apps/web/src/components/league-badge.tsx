@@ -45,7 +45,7 @@ export function LeagueChip({
     <button
       type="button"
       onClick={onClick}
-      className={`flex min-h-[34px] shrink-0 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-full border px-3 py-1.5 font-mono text-[11px] font-semibold transition-colors ${
+      className={`flex min-h-[40px] shrink-0 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-full border px-3 py-1.5 font-mono text-[11px] font-semibold transition-colors ${
         active
           ? 'border-ev-active bg-ev-deep text-ev'
           : 'border-ctrl bg-card text-[#a1a1aa] hover:border-[#3f3f46] hover:text-[#f4f4f5]'

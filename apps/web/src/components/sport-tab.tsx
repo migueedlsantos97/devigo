@@ -23,7 +23,7 @@ export function SportTab({
       type="button"
       onClick={empty ? undefined : onClick}
       disabled={empty}
-      className="flex cursor-pointer items-center gap-2 whitespace-nowrap border-none bg-transparent px-3 pb-2.5 pt-3 text-[13px] transition-colors disabled:cursor-default"
+      className="flex min-h-[44px] shrink-0 cursor-pointer items-center gap-2 whitespace-nowrap border-none bg-transparent px-3 pb-2.5 pt-3 text-[13px] transition-colors disabled:cursor-default"
       style={{
         borderBottom: `2px solid ${active ? '#34d399' : 'transparent'}`,
         color: empty ? '#3f3f46' : active ? '#34d399' : '#71717a',
