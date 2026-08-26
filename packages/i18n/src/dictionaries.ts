@@ -39,7 +39,7 @@ export interface Dictionary {
   readonly license: { title: string; body: string; cta: string; ctaAlt: string };
   readonly ticket: {
     title: string; empty: string; clear: string; stake: string; correlation: string;
-    legs: (n: number) => string; emptyLegs: string;
+    legs: (n: number) => string; emptyLegs: string; emptyTitle: string;
     goalTitle: string;
     goalLabel: string; goalPlaceholder: string; goalBuild: string; goalHelp: string;
     goalReached: (amount: string) => string;
@@ -54,6 +54,12 @@ export interface Dictionary {
     combinedPrice: string; fairPrice: string; expectedValue: string; kelly: string;
     joint: (v: string) => string; perUnit: (v: string) => string; ofBankroll: (v: string) => string; noLegs: string;
     payout: (v: string) => string;
+    oneIn: string;
+    oneInValue: (n: number, p: string) => string;
+    breakeven: string;
+    per100: string;
+    cash: (p: string) => string;
+    lose: (p: string) => string;
   };
   readonly sim: {
     title: string; hit: (v: string) => string;
@@ -68,6 +74,14 @@ export interface Dictionary {
     allDates: string;
     today: string;
     tomorrow: string;
+    allSports: string;
+    allComps: string;
+    compLabel: string;
+    games: (n: number) => string;
+    everyDay: string;
+    scheduleTitle: string;
+    scheduleSub: string;
+    noMarkets: string;
   };
   readonly currencyLabel: string;
   readonly methods: { shin: string; multiplicative: string; additive: string };
@@ -89,6 +103,27 @@ export interface Dictionary {
     readonly margin: string;
     readonly manualPrice: string;
     readonly manualTag: string;
+  };
+  readonly builder: {
+    readonly title: string;
+    readonly subtitle: string;
+    readonly styleLabel: string;
+    readonly styleHint: Record<'conservative' | 'balanced' | 'fantasy', string>;
+    readonly stakeQuestion: string;
+    readonly payout: (v: string, p: string) => string;
+    readonly linkNone: string;
+    readonly linkSome: (matchup: string, before: string, after: string) => string;
+    readonly noteIdle: string;
+    readonly noteBuilt: (legs: string, payout: string, prob: string) => string;
+    readonly noteShort: (legs: string, payout: string, goal: string) => string;
+    readonly noteNone: string;
+  };
+  readonly glossary: {
+    readonly toggle: string;
+    readonly fairTerm: string; readonly fairText: string;
+    readonly marginTerm: string; readonly marginText: string;
+    readonly boltTerm: string; readonly boltText: string;
+    readonly profitTerm: string; readonly profitText: string;
   };
   readonly account: {
     readonly signIn: string;
@@ -235,6 +270,7 @@ const es: Dictionary = {
     clear: 'VACIAR', stake: 'Importe', correlation: 'Correl.',
     legs: (n) => n + (n === 1 ? ' selección' : ' selecciones'),
     emptyLegs: 'vacío',
+    emptyTitle: 'Tu boleto está vacío',
     goalTitle: 'Arma tu boleto',
     goalLabel: 'Quiero ganar',
     goalPlaceholder: 'ej. 500',
@@ -253,6 +289,12 @@ const es: Dictionary = {
     joint: (v) => 'conjunta ' + v, perUnit: (v) => v + ' por unidad', ofBankroll: (v) => v + ' del capital',
     noLegs: 'sin selecciones',
     payout: (v) => 'paga ' + v,
+    oneIn: 'Aciertas',
+    oneInValue: (n, p) => '1 de cada ' + n + ' · ' + p,
+    breakeven: 'Para no perder hace falta',
+    per100: 'Media por 100 boletos',
+    cash: (p) => 'Cobra ' + p + ' de las veces',
+    lose: (p) => 'Pierde ' + p + ' de las veces',
   },
   sim: {
     title: 'Montecarlo · 10.000 tiradas', hit: (v) => 'acierto ' + v,
@@ -269,6 +311,14 @@ const es: Dictionary = {
     allDates: 'Todas',
     today: 'HOY',
     tomorrow: 'MAÑANA',
+    allSports: 'Todo',
+    allComps: 'Todas',
+    compLabel: 'Competición',
+    games: (n) => n + ' partidos',
+    everyDay: 'todos',
+    scheduleTitle: 'Cronograma',
+    scheduleSub: 'elige el día que quieres mirar',
+    noMarkets: 'Ningún partido con esos filtros.',
   },
   currencyLabel: 'Moneda',
   methods: { shin: 'el método de Shin', multiplicative: 'reparto proporcional', additive: 'reparto aditivo' },
@@ -298,6 +348,35 @@ const es: Dictionary = {
     margin: 'Comisión que la casa esconde en las cuotas de este mercado. Media de las casas cotizadas.',
     manualPrice: 'Escribe la cuota que te ofrece tu casa para compararla contra el consenso',
     manualTag: 'MANUAL',
+  },
+  builder: {
+    title: 'Arma tu boleto',
+    subtitle: 'dinos cuánto quieres ganar y el motor busca las selecciones',
+    styleLabel: 'Estilo',
+    styleHint: {
+      conservative: 'Pocas selecciones y solo favoritos claros: cobra más a menudo, paga menos.',
+      balanced: 'Admite no favoritos con ventaja real: paga más, cobra menos veces.',
+      fantasy: 'Sin límite de riesgo: premio grande, casi nunca entra.',
+    },
+    stakeQuestion: '¿Cuánto apuestas?',
+    payout: (v, p) => 'Si aciertas todo cobras ' + v + ' (' + p + ' de probabilidad)',
+    linkNone: 'Selecciones de partidos distintos: no se afectan entre sí, así que el cálculo las trata como independientes.',
+    linkSome: (m, a, b) => 'Dos selecciones de ' + m + ' dependen del mismo resultado: el cálculo las liga y la probabilidad pasa de ' + a + ' a ' + b + '.',
+    noteIdle: 'Elige un estilo, escribe cuánto quieres ganar y pulsa ARMAR. También puedes tocar cuotas del tablero a mano.',
+    noteBuilt: (n, pay, prob) => 'Boleto de ' + n + ': si entra cobras ' + pay + ', y eso pasa el ' + prob + ' de las veces.',
+    noteShort: (n, pay, goal) => 'Con este estilo solo llego a ' + pay + ' con ' + n + ' (querías ' + goal + '). Sube el importe o cambia a un estilo más arriesgado.',
+    noteNone: 'Ahora mismo no hay líneas con valor suficiente para este estilo. Prueba con otro estilo o quita los filtros.',
+  },
+  glossary: {
+    toggle: 'QUÉ ES ESTO',
+    fairTerm: 'Probabilidad justa:',
+    fairText: 'lo que el modelo dice que pasa de verdad, sin la comisión de la casa. Si la cuota que te ofrecen paga más que eso, tienes valor.',
+    marginTerm: 'Margen:',
+    marginText: 'la comisión que se queda la casa en ese mercado.',
+    boltTerm: 'Rayo verde:',
+    boltText: 'esa línea paga por encima de su valor real.',
+    profitTerm: 'Ganancia media:',
+    profitText: 'lo que ganas o pierdes de media por cada boleto igual a este.',
   },
   account: {
     signIn: 'Crear cuenta / entrar',
@@ -444,6 +523,7 @@ const en: Dictionary = {
     clear: 'CLEAR', stake: 'Stake', correlation: 'Corr.',
     legs: (n) => n + (n === 1 ? ' leg' : ' legs'),
     emptyLegs: 'empty',
+    emptyTitle: 'Your ticket is empty',
     goalTitle: 'Build your ticket',
     goalLabel: 'I want to win',
     goalPlaceholder: 'e.g. 500',
@@ -462,6 +542,12 @@ const en: Dictionary = {
     joint: (v) => 'joint ' + v, perUnit: (v) => v + ' per unit', ofBankroll: (v) => v + ' of bankroll',
     noLegs: 'no legs',
     payout: (v) => 'pays ' + v,
+    oneIn: 'You hit',
+    oneInValue: (n, p) => '1 in ' + n + ' · ' + p,
+    breakeven: 'Break-even hit rate',
+    per100: 'Average per 100 tickets',
+    cash: (p) => 'Cashes ' + p + ' of the time',
+    lose: (p) => 'Loses ' + p + ' of the time',
   },
   sim: {
     title: 'Monte Carlo · 10,000 runs', hit: (v) => 'hit ' + v,
@@ -478,6 +564,14 @@ const en: Dictionary = {
     allDates: 'All',
     today: 'TODAY',
     tomorrow: 'TOMORROW',
+    allSports: 'All',
+    allComps: 'All',
+    compLabel: 'Competition',
+    games: (n) => n + ' games',
+    everyDay: 'every day',
+    scheduleTitle: 'Schedule',
+    scheduleSub: 'pick the day you want to look at',
+    noMarkets: 'No games match those filters.',
   },
   currencyLabel: 'Currency',
   methods: { shin: "Shin's method", multiplicative: 'proportional de-vig', additive: 'additive de-vig' },
@@ -507,6 +601,35 @@ const en: Dictionary = {
     margin: 'Commission the book hides inside this market’s prices. Average across quoted books.',
     manualPrice: 'Type the odds your book offers to compare them against the consensus',
     manualTag: 'MANUAL',
+  },
+  builder: {
+    title: 'Build your ticket',
+    subtitle: 'tell us what you want to win and the engine finds the legs',
+    styleLabel: 'Style',
+    styleHint: {
+      conservative: 'Few legs, clear favourites only: cashes more often, pays less.',
+      balanced: 'Underdogs allowed when the edge is real: pays more, cashes less often.',
+      fantasy: 'No risk cap: big prize, almost never lands.',
+    },
+    stakeQuestion: 'How much are you staking?',
+    payout: (v, p) => 'Hit them all and you collect ' + v + ' (' + p + ' chance)',
+    linkNone: 'Every leg is from a different game, so they cannot affect each other — the maths treats them as independent.',
+    linkSome: (m, a, b) => 'Two legs from ' + m + ' hang on the same result: the maths links them and the chance moves from ' + a + ' to ' + b + '.',
+    noteIdle: 'Pick a style, type what you want to win and hit BUILD. You can also tap prices on the board by hand.',
+    noteBuilt: (n, pay, prob) => 'Ticket with ' + n + ': it pays ' + pay + ', and that happens ' + prob + ' of the time.',
+    noteShort: (n, pay, goal) => 'This style only reaches ' + pay + ' with ' + n + ' (you asked for ' + goal + '). Raise the stake or switch to a riskier style.',
+    noteNone: 'No lines carry enough value for this style right now. Try another style or clear the filters.',
+  },
+  glossary: {
+    toggle: 'WHAT IS THIS',
+    fairTerm: 'Fair probability:',
+    fairText: "what the model says really happens, without the book's commission. If the offered price pays more than that, you have value.",
+    marginTerm: 'Margin:',
+    marginText: 'the commission the book keeps on that market.',
+    boltTerm: 'Green bolt:',
+    boltText: 'this line pays above its real worth.',
+    profitTerm: 'Avg profit:',
+    profitText: 'what you win or lose on average across tickets like this one.',
   },
   account: {
     signIn: 'Create account / sign in',

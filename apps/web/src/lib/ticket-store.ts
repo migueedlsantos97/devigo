@@ -21,10 +21,12 @@ import { localDateKey } from './date-groups';
 import {
   DEFAULT_BANKROLL,
   DEMO_MARKETS,
-  KELLY_MULTIPLIER,
   METHODS,
   MIN_EDGE,
+  SAME_MATCH_RHO,
   SIM_BANKROLL,
+  sportOf,
+  STYLE_CONFIG,
   type NormalizedMarket,
   type OddsFeedResponse,
 } from './markets';
@@ -48,6 +50,7 @@ export interface BoardRunner {
 export interface BoardMarket {
   readonly id: string;
   readonly league: string;
+  readonly sport: string;
   readonly time: string;
   /** Raw kickoff timestamp — used to group/filter the board by calendar day. */
   readonly startsAt: string;
@@ -63,14 +66,37 @@ export interface HistogramBar {
   readonly profit: boolean;
 }
 
-/** All-pairs-equal correlation matrix driven by the panel's single rho slider. */
+/** All-pairs-equal correlation matrix — used only by the /scan page's what-if slider. */
 export const uniformCorrelation = (n: number, rho: number): CorrelationMatrix =>
   Array.from({ length: n }, (_, i) => Array.from({ length: n }, (_, j) => (i === j ? 1 : rho)));
 
 /**
+ * Correlation is inferred from the selections, not a user-tunable slider: legs
+ * that share a matchup hang on the same result and get a fixed pairwise rho;
+ * legs from different matchups are independent. Returns the shared matchup
+ * name too, for the plain-language note explaining why (or why not) legs are linked.
+ */
+export const matchupCorrelation = (
+  matchups: ReadonlyArray<string>,
+): { matrix: CorrelationMatrix; sharedMatchup: string | null } => {
+  const n = matchups.length;
+  const counts = new Map<string, number>();
+  for (const m of matchups) counts.set(m, (counts.get(m) ?? 0) + 1);
+  const sharedMatchup = [...counts.entries()].find(([, count]) => count > 1)?.[0] ?? null;
+  const matrix = Array.from({ length: n }, (_, i) =>
+    Array.from({ length: n }, (_, j) => {
+      if (i === j) return 1;
+      return sharedMatchup !== null && matchups[i] === matchups[j] ? SAME_MATCH_RHO : 0;
+    }),
+  );
+  return { matrix, sharedMatchup };
+};
+
+/**
  * Bins the binary ticket-return distribution exactly as raw draws would land:
  * every simulated outcome is either -stake or stake*(price-1), so bin counts
- * follow directly from the hit rate.
+ * follow directly from the hit rate. Used by /scan; the panel shows a plain
+ * win/lose split instead of a histogram.
  */
 export const histogramBars = (
   sim: SimulationResult,
@@ -90,20 +116,28 @@ export const histogramBars = (
   });
 };
 
+export type BuildStatus = 'idle' | 'built' | 'short' | 'none';
+
 export interface PanelState {
   readonly source: 'live' | 'demo';
   readonly board: ReadonlyArray<BoardMarket>;
-  /** Distinct leagues on the full board with their market counts, in board order. */
+  /** Distinct sports on the board (day-filtered) with counts, in first-seen order. */
+  readonly sports: ReadonlyArray<{ sport: string; count: number }>;
+  readonly sportFilter: string | null;
+  readonly setSportFilter: (sport: string | null) => void;
+  /** Competitions within the selected sport (day-filtered); empty unless the sport has more than one. */
   readonly leagues: ReadonlyArray<{ league: string; count: number }>;
   readonly leagueFilter: string | null;
   readonly setLeagueFilter: (league: string | null) => void;
-  /** Distinct local calendar days on the full board with their market counts, sorted ascending. */
+  /** Distinct local calendar days (sport+competition-filtered) with counts, sorted ascending. */
   readonly dates: ReadonlyArray<{ date: string; count: number }>;
   readonly dateFilter: string | null;
   readonly setDateFilter: (date: string | null) => void;
   readonly method: VigMethod;
   readonly methodShort: string;
   readonly cycleMethod: () => void;
+  readonly style: BuildMode;
+  readonly setStyle: (mode: BuildMode) => void;
   readonly selected: ReadonlyArray<string>;
   readonly legs: ReadonlyArray<
     Leg & { matchup: string; book: string; commission: number; manual: boolean; feedPrice: number }
@@ -114,18 +148,18 @@ export interface PanelState {
   readonly remove: (id: string) => void;
   readonly clear: () => void;
   readonly autoBuild: () => void;
-  /** Builds a parlay aiming for a target profit, in the given risk style. Returns whether it was reachable. */
-  readonly buildForGoal: (targetProfit: number, mode: BuildMode) => boolean;
+  /** Builds a parlay from the visible board aiming for a target profit, in the current style. */
+  readonly buildForGoal: (targetProfit: number) => void;
+  readonly buildStatus: BuildStatus;
   readonly stake: number;
   readonly setStake: (v: number) => void;
-  readonly corr: number;
-  readonly setCorr: (v: number) => void;
+  /** Matchup shared by two or more selected legs, if any — drives the correlation note. */
+  readonly sharedMatchup: string | null;
   readonly bankroll: number;
   readonly setBankroll: (v: number) => void;
   readonly analysis: TicketAnalysis | null;
   readonly simulation: SimulationResult | null;
   readonly survival: ReadonlyArray<number>;
-  readonly histogram: ReadonlyArray<HistogramBar>;
   readonly scannedLines: number;
   readonly valueCount: number;
   readonly avgMargin: number;
@@ -137,11 +171,24 @@ export const usePanel = (locale: Locale): PanelState => {
   const [selected, setSelected] = useState<ReadonlyArray<string>>([]);
   const [overrides, setOverrides] = useState<Readonly<Record<string, number>>>({});
   const [stake, setStake] = useState(25);
-  const [corr, setCorr] = useState(0);
   const [methodIndex, setMethodIndex] = useState(0);
+  const [style, setStyle] = useState<BuildMode>('balanced');
   const [bankroll, setBankrollState] = useState(DEFAULT_BANKROLL);
-  const [leagueFilter, setLeagueFilter] = useState<string | null>(null);
-  const [dateFilter, setDateFilter] = useState<string | null>(null);
+  const [sportFilter, setSportFilterState] = useState<string | null>(null);
+  const [leagueFilter, setLeagueFilterState] = useState<string | null>(null);
+  const [dateFilter, setDateFilterState] = useState<string | null>(null);
+  const [buildStatus, setBuildStatus] = useState<BuildStatus>('idle');
+
+  const setSportFilter = (sport: string | null): void => {
+    setSportFilterState(sport);
+    setLeagueFilterState(null);
+  };
+  const setLeagueFilter = (league: string | null): void => setLeagueFilterState(league);
+  const setDateFilter = (date: string | null): void => {
+    setDateFilterState(date);
+    setSportFilterState(null);
+    setLeagueFilterState(null);
+  };
 
   useEffect(() => {
     try {
@@ -183,7 +230,7 @@ export const usePanel = (locale: Locale): PanelState => {
 
   const method = METHODS[methodIndex % METHODS.length] ?? { key: 'shin' as VigMethod, short: 'SHIN' };
 
-  const board = useMemo<ReadonlyArray<BoardMarket>>(() => {
+  const rawBoard = useMemo<ReadonlyArray<BoardMarket>>(() => {
     const timeFmt = new Intl.DateTimeFormat(LOCALE_META[locale].bcp47, {
       weekday: 'short',
       hour: '2-digit',
@@ -193,6 +240,7 @@ export const usePanel = (locale: Locale): PanelState => {
       const base = {
         id: mk.id,
         league: mk.league,
+        sport: sportOf(mk.league),
         time: timeFmt.format(new Date(mk.startsAt)).toUpperCase(),
         startsAt: mk.startsAt,
         matchup: mk.matchup,
@@ -248,12 +296,14 @@ export const usePanel = (locale: Locale): PanelState => {
     });
   }, [markets, locale, method.key]);
 
-  const allRunners = useMemo(() => board.flatMap((m) => m.runners), [board]);
+  // Legs already on the ticket must keep resolving even after the board filters
+  // change, so lookups for the ticket itself always go through the FULL board.
+  const rawRunners = useMemo(() => rawBoard.flatMap((m) => m.runners), [rawBoard]);
 
   const legs = useMemo(
     () =>
       selected.flatMap((id) => {
-        const runner = allRunners.find((r) => r.id === id);
+        const runner = rawRunners.find((r) => r.id === id);
         if (!runner) return [];
         const override = overrides[id];
         const manual = typeof override === 'number' && override > 1;
@@ -269,23 +319,24 @@ export const usePanel = (locale: Locale): PanelState => {
           fairProbability: runner.fairProbability,
         }];
       }),
-    [selected, allRunners, overrides],
+    [selected, rawRunners, overrides],
   );
 
-  const correlation = useMemo(() => uniformCorrelation(legs.length, corr / 100), [legs.length, corr]);
+  const { matrix: correlation, sharedMatchup } = useMemo(
+    () => matchupCorrelation(legs.map((l) => l.matchup)),
+    [legs],
+  );
+
+  const kellyMultiplier = STYLE_CONFIG[style].kellyMultiplier;
 
   const analysis = useMemo(
-    () => (legs.length ? analyzeTicket(legs, correlation, KELLY_MULTIPLIER) : null),
-    [legs, correlation],
+    () => (legs.length ? analyzeTicket(legs, correlation, kellyMultiplier) : null),
+    [legs, correlation, kellyMultiplier],
   );
 
-  // Deferred inputs keep slider dragging fluid: the 10k-run simulation lags a
-  // frame behind the analytic numbers instead of blocking every input event.
-  // Only scalars are deferred — the matrix is rebuilt from the CURRENT leg
-  // count, otherwise a stale smaller matrix crashes the simulation when a
-  // leg is added.
+  // Deferred stake keeps the amount field fluid: the 10k-run simulation lags a
+  // frame behind the analytic numbers instead of blocking every keystroke.
   const deferredStake = useDeferredValue(stake);
-  const deferredCorr = useDeferredValue(corr);
   const simulation = useMemo(
     () =>
       legs.length
@@ -293,45 +344,62 @@ export const usePanel = (locale: Locale): PanelState => {
             iterations: 10_000,
             stake: deferredStake,
             seed: 1337,
-            correlation: uniformCorrelation(legs.length, deferredCorr / 100),
+            correlation,
             bankroll: SIM_BANKROLL,
           })
         : null,
-    [legs, deferredStake, deferredCorr],
+    [legs, deferredStake, correlation],
   );
 
   const survival = useMemo(() => (legs.length ? survivalCurve(legs) : []), [legs]);
 
-  const histogram = useMemo(
-    () => (analysis && simulation ? histogramBars(simulation, stake, analysis.combinedPrice) : []),
-    [analysis, simulation, stake],
-  );
+  // Sport/competition/date are faceted filters: each list's counts reflect the
+  // OTHER active filters, so a chip never advertises games the board can't show.
+  const byDate = (list: ReadonlyArray<BoardMarket>): ReadonlyArray<BoardMarket> =>
+    dateFilter === null ? list : list.filter((m) => localDateKey(m.startsAt) === dateFilter);
+  const bySport = (list: ReadonlyArray<BoardMarket>): ReadonlyArray<BoardMarket> =>
+    sportFilter === null ? list : list.filter((m) => m.sport === sportFilter);
+
+  const sports = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const market of byDate(rawBoard)) counts.set(market.sport, (counts.get(market.sport) ?? 0) + 1);
+    return [...counts.entries()].map(([sport, count]) => ({ sport, count }));
+  }, [rawBoard, dateFilter]);
 
   const leagues = useMemo(() => {
+    if (sportFilter === null) return [];
     const counts = new Map<string, number>();
-    for (const market of board) counts.set(market.league, (counts.get(market.league) ?? 0) + 1);
-    return [...counts.entries()].map(([league, count]) => ({ league, count }));
-  }, [board]);
+    for (const market of byDate(bySport(rawBoard))) counts.set(market.league, (counts.get(market.league) ?? 0) + 1);
+    const list = [...counts.entries()].map(([league, count]) => ({ league, count }));
+    return list.length > 1 ? list : [];
+  }, [rawBoard, sportFilter, dateFilter]);
 
   const dates = useMemo(() => {
+    const scoped = leagueFilter === null ? bySport(rawBoard) : bySport(rawBoard).filter((m) => m.league === leagueFilter);
     const counts = new Map<string, number>();
-    for (const market of board) {
+    for (const market of scoped) {
       const key = localDateKey(market.startsAt);
       counts.set(key, (counts.get(key) ?? 0) + 1);
     }
     return [...counts.entries()].sort((a, b) => a[0].localeCompare(b[0])).map(([date, count]) => ({ date, count }));
-  }, [board]);
+  }, [rawBoard, sportFilter, leagueFilter]);
 
-  const filteredBoard = useMemo(() => {
-    let list = board;
+  const visibleBoard = useMemo(() => {
+    let list = rawBoard;
+    if (sportFilter !== null) list = list.filter((m) => m.sport === sportFilter);
     if (leagueFilter !== null) list = list.filter((m) => m.league === leagueFilter);
     if (dateFilter !== null) list = list.filter((m) => localDateKey(m.startsAt) === dateFilter);
     return list;
-  }, [board, leagueFilter, dateFilter]);
+  }, [rawBoard, sportFilter, leagueFilter, dateFilter]);
+
+  const visibleRunners = useMemo(() => visibleBoard.flatMap((m) => m.runners), [visibleBoard]);
 
   return {
     source,
-    board: filteredBoard,
+    board: visibleBoard,
+    sports,
+    sportFilter,
+    setSportFilter,
     leagues,
     leagueFilter,
     setLeagueFilter,
@@ -341,14 +409,22 @@ export const usePanel = (locale: Locale): PanelState => {
     method: method.key,
     methodShort: method.short,
     cycleMethod: () => setMethodIndex((i) => (i + 1) % METHODS.length),
+    style,
+    setStyle: (mode) => setStyle(mode),
     selected,
     legs,
-    toggle: (id) =>
-      setSelected((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id])),
-    remove: (id) => setSelected((prev) => prev.filter((x) => x !== id)),
+    toggle: (id) => {
+      setBuildStatus('idle');
+      setSelected((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+    },
+    remove: (id) => {
+      setBuildStatus('idle');
+      setSelected((prev) => prev.filter((x) => x !== id));
+    },
     clear: () => {
       setSelected([]);
       setOverrides({});
+      setBuildStatus('idle');
     },
     setPriceOverride: (id, price) =>
       setOverrides((prev) => {
@@ -358,34 +434,35 @@ export const usePanel = (locale: Locale): PanelState => {
         return next;
       }),
     autoBuild: () =>
-      setSelected(allRunners.filter((r) => r.edge >= MIN_EDGE).slice(0, 4).map((r) => r.id)),
-    buildForGoal: (targetProfit, mode) => {
-      if (!Number.isFinite(targetProfit) || targetProfit <= 0 || board.length === 0) return false;
-      const candidates = board.flatMap((market) =>
-        market.runners.map((r) => ({
-          id: r.id,
-          marketKey: market.id,
-          price: r.price,
-          fairProbability: r.fairProbability,
-        })),
+      setSelected(visibleRunners.filter((r) => r.edge >= MIN_EDGE).slice(0, 4).map((r) => r.id)),
+    buildForGoal: (targetProfit) => {
+      const cfg = STYLE_CONFIG[style];
+      const candidates = visibleBoard.flatMap((market) =>
+        market.runners
+          .filter((r) => r.fairProbability >= cfg.minLegProb && r.edge >= cfg.minEdge)
+          .map((r) => ({ id: r.id, marketKey: market.id, price: r.price, fairProbability: r.fairProbability })),
       );
-      const targetPrice = 1 + targetProfit / stake;
-      const result = buildTicketForTarget(candidates, targetPrice, 15, mode);
+      if (candidates.length === 0) {
+        setSelected([]);
+        setBuildStatus('none');
+        return;
+      }
+      const targetPrice = Number.isFinite(targetProfit) && targetProfit > 0 ? 1 + targetProfit / stake : 1.01;
+      const result = buildTicketForTarget(candidates, targetPrice, cfg.maxLegs, style);
       setSelected(result.legIds);
-      return result.reached;
+      setBuildStatus(result.legIds.length === 0 ? 'none' : result.reached ? 'built' : 'short');
     },
+    buildStatus,
     stake,
     setStake,
-    corr,
-    setCorr,
+    sharedMatchup,
     bankroll,
     setBankroll,
     analysis,
     simulation,
     survival,
-    histogram,
-    scannedLines: board.reduce((sum, m) => sum + m.runners.length * m.bookCount, 0),
-    valueCount: allRunners.filter((r) => r.edge >= MIN_EDGE).length,
-    avgMargin: board.length ? board.reduce((sum, m) => sum + m.margin, 0) / board.length : 0,
+    scannedLines: visibleBoard.reduce((sum, m) => sum + m.runners.length * m.bookCount, 0),
+    valueCount: visibleRunners.filter((r) => r.edge >= MIN_EDGE).length,
+    avgMargin: visibleBoard.length ? visibleBoard.reduce((sum, m) => sum + m.margin, 0) / visibleBoard.length : 0,
   };
 };

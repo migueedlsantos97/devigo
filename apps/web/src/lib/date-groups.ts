@@ -14,7 +14,11 @@ export const tomorrowKey = (): string => {
   return toLocalKey(d);
 };
 
-/** "HOY" / "MAÑANA" for the next two days, otherwise a short weekday + day label. */
+/**
+ * "HOY" / "MAÑANA" for the next two days, otherwise the short weekday alone —
+ * day cards render the day number separately, so repeating it here would
+ * read as "28 FRI 28".
+ */
 export const dayLabel = (
   key: string,
   locale: Locale,
@@ -25,7 +29,8 @@ export const dayLabel = (
   if (key === tomorrowKey()) return tomorrowStr;
   const [y, m, d] = key.split('-').map(Number);
   const date = new Date(y as number, (m as number) - 1, d as number);
-  return new Intl.DateTimeFormat(LOCALE_META[locale].bcp47, { weekday: 'short', day: 'numeric' })
+  return new Intl.DateTimeFormat(LOCALE_META[locale].bcp47, { weekday: 'short' })
     .format(date)
-    .toUpperCase();
+    .toUpperCase()
+    .replace(/\.$/, '');
 };

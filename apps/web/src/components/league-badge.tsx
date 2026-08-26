@@ -13,8 +13,19 @@ const LEAGUE_META: Record<string, { glyph: string; color: string }> = {
   ATP: { glyph: '🎾', color: '#a3e635' },
 };
 
+const SPORT_META: Record<string, { glyph: string; color: string }> = {
+  futbol: { glyph: '⚽', color: '#38bdf8' },
+  basket: { glyph: '🏀', color: '#f43f5e' },
+  nfl: { glyph: '🏈', color: '#a78bfa' },
+  beisbol: { glyph: '⚾', color: '#34d399' },
+  tenis: { glyph: '🎾', color: '#a3e635' },
+};
+
 export const leagueMeta = (league: string): { glyph: string; color: string } =>
   LEAGUE_META[league] ?? { glyph: '🏟️', color: '#a1a1aa' };
+
+export const sportMeta = (sport: string): { glyph: string; color: string } =>
+  SPORT_META[sport] ?? { glyph: '🏟️', color: '#a1a1aa' };
 
 export function LeagueChip({
   league,
