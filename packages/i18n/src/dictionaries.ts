@@ -4,18 +4,21 @@ import type { Locale } from './locales.js';
 export interface Dictionary {
   readonly nav: { engine: string; proof: string; pricing: string; whiteLabel: string; console: string };
   readonly panelNav: { builder: string; scanner: string; backtest: string; bankroll: string };
-  readonly feed: (books: string) => string;
+  readonly feedLive: string;
+  readonly feedDemo: string;
   readonly bankrollLabel: string;
   readonly hero: { badge: string; h1a: string; h1b: string; body: string; ctaPrimary: string; ctaSecondary: string };
   readonly metrics: ReadonlyArray<{ value: string; label: string; accent: boolean }>;
   readonly heroCard: {
     readonly title: string;
-    readonly ev: string;
-    readonly legs: ReadonlyArray<{ label: string; price: string; p: number }>;
+    readonly disclaimer: string;
+    readonly legs: ReadonlyArray<{ label: string; price: number; p: number }>;
     readonly survival: (v: string) => string;
-    readonly stats: ReadonlyArray<{ label: string; value: string }>;
+    readonly statPrice: string;
+    readonly statFair: string;
+    readonly statKelly: string;
     readonly simLabel: string;
-    readonly simHit: string;
+    readonly simHit: (v: string) => string;
   };
   readonly engine: {
     readonly kicker: string;
@@ -62,7 +65,8 @@ export interface Dictionary {
 const es: Dictionary = {
   nav: { engine: 'Motor', proof: 'Pruebas', pricing: 'Precios', whiteLabel: 'Marca blanca', console: 'Abrir el panel' },
   panelNav: { builder: 'Constructor', scanner: 'Escáner de valor', backtest: 'Backtests', bankroll: 'Capital' },
-  feed: (books) => 'SEÑAL EN VIVO · ' + books + ' CASAS',
+  feedLive: 'SEÑAL EN VIVO · THE ODDS API',
+  feedDemo: 'DATOS DE DEMO',
   bankrollLabel: 'capital',
   hero: {
     badge: 'MÉTODO DE SHIN · 10.000 SIMULACIONES POR BOLETO',
@@ -72,23 +76,22 @@ const es: Dictionary = {
     ctaPrimary: 'Construir un boleto', ctaSecondary: 'Leer la especificación',
   },
   metrics: [
-    { value: '4,7%', label: 'margen mediano que le quitamos a la casa', accent: false },
-    { value: '+3,1%', label: 'CLV sobre 41.000 apuestas registradas', accent: true },
-    { value: '100%', label: 'cobertura de tests en el núcleo', accent: false },
+    { value: '3', label: 'modelos de eliminación de margen: Shin, proporcional y aditivo', accent: false },
+    { value: '10.000', label: 'simulaciones Montecarlo por boleto, con semilla reproducible', accent: false },
+    { value: '100%', label: 'cobertura de tests en el núcleo, barrera que tumba la compilación', accent: true },
   ],
   heroCard: {
-    title: 'BOLETO · 4 SELECCIONES', ev: '+EV 6,42%',
+    title: 'BOLETO DE EJEMPLO',
+    disclaimer: 'Escenario hipotético · cálculo real de @devigo/core',
     legs: [
-      { label: 'Arsenal gana', price: '1,72', p: 0.581 },
-      { label: 'Nuggets -3,5', price: '1,95', p: 0.513 },
-      { label: 'Más de 2,5 · Girona', price: '1,83', p: 0.547 },
-      { label: 'Sinner en 2 sets', price: '2,26', p: 0.442 },
+      { label: 'Arsenal gana', price: 1.72, p: 0.595 },
+      { label: 'Nuggets -3,5', price: 1.95, p: 0.525 },
+      { label: 'Más de 2,5 · Girona', price: 1.83, p: 0.56 },
+      { label: 'Sinner en 2 sets', price: 2.26, p: 0.455 },
     ],
     survival: (v) => 'vivo ' + v,
-    stats: [
-      { label: 'Cuota', value: '13,84' }, { label: 'Justa', value: '13,01' }, { label: 'Kelly', value: '38 €' },
-    ],
-    simLabel: 'MONTECARLO · 10.000 TIRADAS', simHit: 'acierto 7,68%',
+    statPrice: 'Cuota', statFair: 'Justa', statKelly: 'Kelly',
+    simLabel: 'MONTECARLO · 10.000 TIRADAS', simHit: (v) => 'acierto ' + v,
   },
   engine: {
     kicker: '01 — EL MOTOR',
@@ -168,7 +171,8 @@ const es: Dictionary = {
 const en: Dictionary = {
   nav: { engine: 'Engine', proof: 'Proof', pricing: 'Pricing', whiteLabel: 'White-label', console: 'Open the console' },
   panelNav: { builder: 'Ticket builder', scanner: 'Value scanner', backtest: 'Backtests', bankroll: 'Bankroll' },
-  feed: (books) => 'FEED LIVE · ' + books + ' BOOKS',
+  feedLive: 'FEED LIVE · THE ODDS API',
+  feedDemo: 'DEMO DATA',
   bankrollLabel: 'bankroll',
   hero: {
     badge: 'SHIN DE-VIG · 10,000 SIMULATIONS PER TICKET',
@@ -178,23 +182,22 @@ const en: Dictionary = {
     ctaPrimary: 'Build a ticket', ctaSecondary: 'Read the engine spec',
   },
   metrics: [
-    { value: '4.7%', label: 'median margin taken back off the book', accent: false },
-    { value: '+3.1%', label: 'CLV over 41k logged bets', accent: true },
-    { value: '100%', label: 'unit-test coverage on core', accent: false },
+    { value: '3', label: 'de-vig models: Shin, proportional and additive', accent: false },
+    { value: '10,000', label: 'seeded Monte Carlo settlements per ticket, fully reproducible', accent: false },
+    { value: '100%', label: 'unit-test coverage on core — the gate fails the build below it', accent: true },
   ],
   heroCard: {
-    title: 'TICKET · 4 LEGS', ev: '+EV 6.42%',
+    title: 'SAMPLE TICKET',
+    disclaimer: 'Hypothetical scenario · real @devigo/core maths',
     legs: [
-      { label: 'Arsenal ML', price: '1.72', p: 0.581 },
-      { label: 'Nuggets -3.5', price: '1.95', p: 0.513 },
-      { label: 'Over 2.5 · Girona', price: '1.83', p: 0.547 },
-      { label: 'Sinner in 2 sets', price: '2.26', p: 0.442 },
+      { label: 'Arsenal ML', price: 1.72, p: 0.595 },
+      { label: 'Nuggets -3.5', price: 1.95, p: 0.525 },
+      { label: 'Over 2.5 · Girona', price: 1.83, p: 0.56 },
+      { label: 'Sinner in 2 sets', price: 2.26, p: 0.455 },
     ],
     survival: (v) => 'live ' + v,
-    stats: [
-      { label: 'Price', value: '13.84' }, { label: 'Fair', value: '13.01' }, { label: 'Kelly', value: '$38' },
-    ],
-    simLabel: 'MONTE CARLO · 10,000 RUNS', simHit: 'hit 7.68%',
+    statPrice: 'Price', statFair: 'Fair', statKelly: 'Kelly',
+    simLabel: 'MONTE CARLO · 10,000 RUNS', simHit: (v) => 'hit ' + v,
   },
   engine: {
     kicker: '01 — THE ENGINE',

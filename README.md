@@ -45,10 +45,27 @@ pnpm dev         # web on http://localhost:3000
   joint probability (uniform-rho correlation slider), EV, ¼-Kelly and the 10k-run Monte Carlo
   histogram synchronously via `@devigo/core`.
 
-Market rows in `apps/web/src/lib/markets.ts` are fixture data matching the design handoff.
-Swap them for the live feed via `@devigo/adapters` behind a route handler that keeps the API
-key server-side (`createTheOddsApiAdapter` → `toFairMarkets`).
+## Live odds feed
 
-> Modelling tool, not betting advice. 18+. Landing metrics (4.7% / +3.1% / 41k bets) are
-> placeholder claims from the design prototype — replace with real figures or remove before
-> publishing.
+`/api/odds` serves real markets from [The Odds API](https://the-odds-api.com) when an API key
+is configured; without one the panel falls back to a fixture clearly badged **DEMO DATA**.
+
+```bash
+# local: create apps/web/.env.local with
+ODDS_API_KEY=your_key_here
+
+# production: add the env var to the Vercel project, then redeploy
+vercel env add ODDS_API_KEY production
+```
+
+The key stays server-side (route handler); responses are cached for 5 minutes. The free tier
+(500 requests/month) is enough for development against 4 leagues.
+
+## PWA
+
+The app ships a web manifest and icons — installable from Chrome/Edge/Android ("Install app")
+and iOS Safari ("Add to Home Screen"). `start_url` is `/panel`. No service worker yet, so no
+offline mode.
+
+> Modelling tool, not betting advice. 18+. The landing's sample ticket is a hypothetical
+> scenario computed live by `@devigo/core`; hero metrics state only verifiable product facts.

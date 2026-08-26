@@ -4,7 +4,9 @@ interface ApiOutcome { name: string; price: number }
 interface ApiMarket { key: string; outcomes: ApiOutcome[] }
 interface ApiBookmaker { key: string; title: string; markets: ApiMarket[] }
 interface ApiEvent {
-  id: string; sport_key: string; commence_time: string; bookmakers: ApiBookmaker[];
+  id: string; sport_key: string; commence_time: string;
+  home_team?: string; away_team?: string;
+  bookmakers: ApiBookmaker[];
 }
 
 export interface TheOddsApiConfig {
@@ -34,6 +36,8 @@ export const createTheOddsApiAdapter = (config: TheOddsApiConfig): OddsAdapter =
             startsAt: event.commence_time,
             market: market.key,
             book: book.key,
+            homeTeam: event.home_team ?? '',
+            awayTeam: event.away_team ?? '',
             runners: market.outcomes.map((outcome, i) => ({
               id: `${event.id}:${market.key}:${i}`,
               label: outcome.name,

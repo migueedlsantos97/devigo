@@ -1,16 +1,21 @@
 'use client';
 
 import Link from 'next/link';
-import { formatPercent, getDictionary } from '@devigo/i18n';
+import { useMemo } from 'react';
+import { analyzeTicket, simulateTicket, survivalCurve, type Leg } from '@devigo/core';
+import { formatMoney, formatOdds, formatPercent, getDictionary } from '@devigo/i18n';
 import { LangSwitch } from '@/components/lang-switch';
 import { Monogram } from '@/components/logo';
 import { useLocale } from '@/lib/locale';
+import { DEFAULT_BANKROLL, KELLY_MULTIPLIER } from '@/lib/markets';
+import { histogramBars } from '@/lib/ticket-store';
 
-const TERMINAL = ` ✓ src/odds.test.ts            (7 tests)   6ms
- ✓ src/vig.test.ts             (7 tests)  11ms
- ✓ src/parlay.test.ts          (7 tests)   8ms
- ✓ src/value.test.ts           (6 tests)   9ms
- ✓ src/monte-carlo.test.ts     (5 tests) 214ms
+// Real output of `pnpm test:cov` on packages/core at the pinned versions.
+const TERMINAL = ` ✓ src/odds.test.ts            (7 tests)   8ms
+ ✓ src/vig.test.ts             (8 tests)   6ms
+ ✓ src/parlay.test.ts          (7 tests)   7ms
+ ✓ src/value.test.ts           (6 tests)   6ms
+ ✓ src/monte-carlo.test.ts     (6 tests)  38ms
 
  % Coverage report from v8
  File            | % Stmts | % Branch | % Funcs | % Lines
@@ -22,9 +27,7 @@ const TERMINAL = ` ✓ src/odds.test.ts            (7 tests)   6ms
  monte-carlo.ts  |     100 |      100 |     100 |     100
 
  Test Files  5 passed (5)
-      Tests  32 passed (32)`;
-
-const BAR_SHAPE = [3, 5, 9, 16, 27, 42, 61, 80, 94, 100, 96, 84, 68, 51, 37, 26, 18, 12, 8, 6, 9, 14, 21, 17, 11, 7, 4, 3];
+      Tests  34 passed (34)`;
 
 const survivalColor = (p: number): string => (p > 0.4 ? '#34d399' : p > 0.15 ? '#f59e0b' : '#f43f5e');
 
@@ -32,11 +35,24 @@ export default function LandingPage() {
   const [locale, setLocale] = useLocale();
   const t = getDictionary(locale);
 
-  let running = 1;
-  const heroLegs = t.heroCard.legs.map((leg) => {
-    running *= leg.p;
-    return { ...leg, survival: running };
-  });
+  // Sample ticket: hypothetical model probabilities, real @devigo/core maths.
+  const sample = useMemo(() => {
+    const legs: Leg[] = t.heroCard.legs.map((leg, i) => ({
+      id: `s${i}`,
+      label: leg.label,
+      price: leg.price,
+      fairProbability: leg.p,
+    }));
+    const analysis = analyzeTicket(legs, undefined, KELLY_MULTIPLIER);
+    const sim = simulateTicket(legs, { iterations: 10_000, stake: 10, seed: 1337 });
+    return {
+      legs,
+      analysis,
+      sim,
+      survival: survivalCurve(legs),
+      bars: histogramBars(sim, 10, analysis.combinedPrice, 28),
+    };
+  }, [t]);
 
   return (
     <div className="bg-canvas text-[#f4f4f5]">
@@ -90,45 +106,55 @@ export default function LandingPage() {
         <div className="min-w-0 rounded-[18px] border border-[#1f1f25] p-[18px]" style={{ background: 'linear-gradient(180deg,#111116,#0c0c10)', boxShadow: '0 40px 80px -40px #000' }}>
           <div className="flex items-center justify-between px-1 pb-3.5">
             <span className="font-mono text-[11px] tracking-[.05em] text-[#71717a]">{t.heroCard.title}</span>
-            <span className="font-mono text-[11px] text-ev">{t.heroCard.ev}</span>
+            <span className="font-mono text-[11px] text-ev">+EV {formatPercent(locale, sample.analysis.edge, 2)}</span>
           </div>
           <div className="flex flex-col gap-2">
-            {heroLegs.map((leg) => (
-              <div key={leg.label} className="flex items-center justify-between gap-3 rounded-[10px] border border-ctrl bg-card px-[13px] py-[11px]">
-                <div className="min-w-0">
-                  <div className="text-[12.5px] font-medium">{leg.label}</div>
-                  <div className="mt-1 flex items-center gap-2">
-                    <div className="h-1 w-[120px] overflow-hidden rounded-sm bg-ctrl">
-                      <div className="h-full transition-[width] duration-[350ms]" style={{ width: `${(leg.survival * 100).toFixed(1)}%`, background: survivalColor(leg.survival) }} />
+            {sample.legs.map((leg, i) => {
+              const alive = sample.survival[i] ?? 0;
+              return (
+                <div key={leg.id} className="flex items-center justify-between gap-3 rounded-[10px] border border-ctrl bg-card px-[13px] py-[11px]">
+                  <div className="min-w-0">
+                    <div className="text-[12.5px] font-medium">{leg.label}</div>
+                    <div className="mt-1 flex items-center gap-2">
+                      <div className="h-1 w-[120px] overflow-hidden rounded-sm bg-ctrl">
+                        <div className="h-full transition-[width] duration-[350ms]" style={{ width: `${(alive * 100).toFixed(1)}%`, background: survivalColor(alive) }} />
+                      </div>
+                      <span className="font-mono text-[10px] text-[#71717a]">
+                        {t.heroCard.survival(formatPercent(locale, alive, 1))}
+                      </span>
                     </div>
-                    <span className="font-mono text-[10px] text-[#71717a]">
-                      {t.heroCard.survival(formatPercent(locale, leg.survival, 1))}
-                    </span>
                   </div>
+                  <span className="font-mono text-sm font-semibold">{formatOdds(locale, leg.price)}</span>
                 </div>
-                <span className="font-mono text-sm font-semibold">{leg.price}</span>
-              </div>
-            ))}
+              );
+            })}
           </div>
           <div className="mt-3.5 grid grid-cols-3 gap-2">
-            {t.heroCard.stats.map((stat, i) => (
-              <div key={stat.label} className={`rounded-[10px] border px-3 py-[11px] ${i === 2 ? 'border-ev-border bg-ev-deep' : 'border-ctrl bg-card'}`}>
-                <div className={`text-[10px] uppercase tracking-[.05em] ${i === 2 ? 'text-ev-light' : 'text-[#71717a]'}`}>{stat.label}</div>
-                <div className={`mt-[3px] font-mono text-[17px] font-semibold ${i === 2 ? 'text-ev' : i === 1 ? 'text-model' : 'text-[#f4f4f5]'}`}>{stat.value}</div>
-              </div>
-            ))}
+            <div className="rounded-[10px] border border-ctrl bg-card px-3 py-[11px]">
+              <div className="text-[10px] uppercase tracking-[.05em] text-[#71717a]">{t.heroCard.statPrice}</div>
+              <div className="mt-[3px] font-mono text-[17px] font-semibold text-[#f4f4f5]">{formatOdds(locale, sample.analysis.combinedPrice)}</div>
+            </div>
+            <div className="rounded-[10px] border border-ctrl bg-card px-3 py-[11px]">
+              <div className="text-[10px] uppercase tracking-[.05em] text-[#71717a]">{t.heroCard.statFair}</div>
+              <div className="mt-[3px] font-mono text-[17px] font-semibold text-model">{formatOdds(locale, 1 / sample.analysis.jointProbability)}</div>
+            </div>
+            <div className="rounded-[10px] border border-ev-border bg-ev-deep px-3 py-[11px]">
+              <div className="text-[10px] uppercase tracking-[.05em] text-ev-light">{t.heroCard.statKelly}</div>
+              <div className="mt-[3px] font-mono text-[17px] font-semibold text-ev">{formatMoney(locale, sample.analysis.kellyFraction * DEFAULT_BANKROLL)}</div>
+            </div>
           </div>
           <div className="mt-3.5 rounded-xl border border-[#1f1f25] bg-sunken p-[13px]">
             <div className="flex items-center justify-between font-mono text-[10.5px] text-[#71717a]">
               <span>{t.heroCard.simLabel}</span>
-              <span className="text-[#a1a1aa]">{t.heroCard.simHit}</span>
+              <span className="text-[#a1a1aa]">{t.heroCard.simHit(formatPercent(locale, sample.sim.hitRate, 2))}</span>
             </div>
             <div className="mt-2.5 flex h-14 items-end gap-[2px]">
-              {BAR_SHAPE.map((h, i) => (
-                <div key={i} className="flex-1 rounded-t-[2px]" style={{ height: `${h}%`, background: i > 18 ? '#34d399' : '#3f3f46' }} />
+              {sample.bars.map((bar, i) => (
+                <div key={i} className="min-h-[2px] flex-1 rounded-t-[2px]" style={{ height: `${bar.heightPct.toFixed(1)}%`, background: bar.profit ? '#34d399' : '#3f3f46' }} />
               ))}
             </div>
           </div>
+          <div className="mt-2.5 px-1 font-mono text-[10px] text-[#52525b]">{t.heroCard.disclaimer}</div>
         </div>
       </section>
 

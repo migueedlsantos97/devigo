@@ -6,6 +6,8 @@ const apiPayload = [
     id: 'evt1',
     sport_key: 'soccer_epl',
     commence_time: '2026-08-29T14:00:00Z',
+    home_team: 'Arsenal',
+    away_team: 'Brighton',
     bookmakers: [
       {
         key: 'bookx',
@@ -39,6 +41,8 @@ describe('the-odds-api adapter', () => {
     const event = events[0] as OddsFeedEvent;
     expect(event.eventId).toBe('evt1');
     expect(event.book).toBe('bookx');
+    expect(event.homeTeam).toBe('Arsenal');
+    expect(event.awayTeam).toBe('Brighton');
     expect(event.runners).toHaveLength(3);
     expect(event.runners[0]?.price).toBe(1.72);
     expect(event.runners[1]?.id).toBe('evt1:h2h:1');

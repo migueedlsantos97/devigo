@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
 import './globals.css';
 
@@ -6,6 +6,13 @@ export const metadata: Metadata = {
   title: 'Devigo — quantitative +EV ticket construction',
   description:
     'Shin de-vig, correlation-aware joint probability, fractional Kelly and 10,000 Monte Carlo settlements per ticket.',
+  appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'Devigo' },
+};
+
+export const viewport: Viewport = {
+  themeColor: '#09090b',
+  width: 'device-width',
+  initialScale: 1,
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

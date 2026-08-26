@@ -8,6 +8,8 @@ export interface OddsFeedEvent {
   readonly market: string;
   readonly runners: ReadonlyArray<Runner>;
   readonly book: string;
+  readonly homeTeam: string;
+  readonly awayTeam: string;
 }
 
 export interface OddsAdapter {

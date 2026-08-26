@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   analyzeTicket,
   devig,
@@ -12,8 +12,19 @@ import {
   type TicketAnalysis,
   type VigMethod,
 } from '@devigo/core';
-import type { Locale } from '@devigo/i18n';
-import { KELLY_MULTIPLIER, MARKETS, METHODS, MIN_EDGE, SIM_BANKROLL } from './markets';
+import { LOCALE_META, type Locale } from '@devigo/i18n';
+import {
+  DEFAULT_BANKROLL,
+  DEMO_MARKETS,
+  KELLY_MULTIPLIER,
+  METHODS,
+  MIN_EDGE,
+  SIM_BANKROLL,
+  type NormalizedMarket,
+  type OddsFeedResponse,
+} from './markets';
+
+const BANKROLL_KEY = 'devigo:bankroll';
 
 export interface BoardRunner {
   readonly id: string;
@@ -45,9 +56,9 @@ export const uniformCorrelation = (n: number, rho: number): CorrelationMatrix =>
   Array.from({ length: n }, (_, i) => Array.from({ length: n }, (_, j) => (i === j ? 1 : rho)));
 
 /**
- * Bins the binary ticket-return distribution exactly as the prototype binned
- * its raw draws: every simulated outcome is either -stake or stake*(price-1),
- * so bin counts follow directly from the hit rate.
+ * Bins the binary ticket-return distribution exactly as raw draws would land:
+ * every simulated outcome is either -stake or stake*(price-1), so bin counts
+ * follow directly from the hit rate.
  */
 export const histogramBars = (
   sim: SimulationResult,
@@ -68,6 +79,7 @@ export const histogramBars = (
 };
 
 export interface PanelState {
+  readonly source: 'live' | 'demo';
   readonly board: ReadonlyArray<BoardMarket>;
   readonly method: VigMethod;
   readonly methodShort: string;
@@ -82,6 +94,8 @@ export interface PanelState {
   readonly setStake: (v: number) => void;
   readonly corr: number;
   readonly setCorr: (v: number) => void;
+  readonly bankroll: number;
+  readonly setBankroll: (v: number) => void;
   readonly analysis: TicketAnalysis | null;
   readonly simulation: SimulationResult | null;
   readonly survival: ReadonlyArray<number>;
@@ -92,40 +106,83 @@ export interface PanelState {
 }
 
 export const usePanel = (locale: Locale): PanelState => {
+  const [markets, setMarkets] = useState<ReadonlyArray<NormalizedMarket>>(DEMO_MARKETS);
+  const [source, setSource] = useState<'live' | 'demo'>('demo');
   const [selected, setSelected] = useState<ReadonlyArray<string>>([]);
   const [stake, setStake] = useState(25);
   const [corr, setCorr] = useState(0);
   const [methodIndex, setMethodIndex] = useState(0);
+  const [bankroll, setBankrollState] = useState(DEFAULT_BANKROLL);
+
+  useEffect(() => {
+    try {
+      const saved = Number(window.localStorage.getItem(BANKROLL_KEY));
+      if (Number.isFinite(saved) && saved > 0) setBankrollState(saved);
+    } catch {
+      // storage unavailable
+    }
+  }, []);
+
+  const setBankroll = (v: number): void => {
+    const clean = Number.isFinite(v) && v > 0 ? Math.min(v, 10_000_000) : DEFAULT_BANKROLL;
+    setBankrollState(clean);
+    try {
+      window.localStorage.setItem(BANKROLL_KEY, String(clean));
+    } catch {
+      // noop
+    }
+  };
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/odds')
+      .then((res) => (res.ok ? (res.json() as Promise<OddsFeedResponse>) : null))
+      .then((data) => {
+        if (cancelled || !data || data.source !== 'live' || data.markets.length === 0) return;
+        setMarkets(data.markets);
+        setSource('live');
+        setSelected([]);
+      })
+      .catch(() => {
+        // feed unreachable — stay on demo fixture
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const method = METHODS[methodIndex % METHODS.length] ?? { key: 'shin' as VigMethod, short: 'SHIN' };
 
-  const board = useMemo<ReadonlyArray<BoardMarket>>(
-    () =>
-      MARKETS.map((mk) => {
-        const fair = devig(
-          mk.runners.map((r) => ({ id: r.id, label: r.label[locale], price: r.price })),
-          method.key,
-        );
-        return {
-          id: mk.id,
-          league: mk.league,
-          time: mk.time[locale],
+  const board = useMemo<ReadonlyArray<BoardMarket>>(() => {
+    const timeFmt = new Intl.DateTimeFormat(LOCALE_META[locale].bcp47, {
+      weekday: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+    return markets.map((mk) => {
+      const fair = devig(
+        mk.runners.map((r) => ({ id: r.id, label: r.label[locale], price: r.price })),
+        method.key,
+      );
+      return {
+        id: mk.id,
+        league: mk.league,
+        time: timeFmt.format(new Date(mk.startsAt)).toUpperCase(),
+        matchup: mk.matchup,
+        marketName: mk.marketName[locale],
+        margin: fair.margin,
+        runners: fair.runners.map((r) => ({
+          id: r.id,
+          label: r.label,
           matchup: mk.matchup,
-          marketName: mk.market[locale],
-          margin: fair.margin,
-          runners: fair.runners.map((r) => ({
-            id: r.id,
-            label: r.label,
-            matchup: mk.matchup,
-            price: r.price,
-            fairProbability: r.fairProbability,
-            fairPrice: r.fairPrice,
-            edge: r.fairProbability * r.price - 1,
-          })),
-        };
-      }),
-    [locale, method.key],
-  );
+          price: r.price,
+          fairProbability: r.fairProbability,
+          fairPrice: r.fairPrice,
+          edge: r.fairProbability * r.price - 1,
+        })),
+      };
+    });
+  }, [markets, locale, method.key]);
 
   const allRunners = useMemo(() => board.flatMap((m) => m.runners), [board]);
 
@@ -168,6 +225,7 @@ export const usePanel = (locale: Locale): PanelState => {
   );
 
   return {
+    source,
     board,
     method: method.key,
     methodShort: method.short,
@@ -184,12 +242,14 @@ export const usePanel = (locale: Locale): PanelState => {
     setStake,
     corr,
     setCorr,
+    bankroll,
+    setBankroll,
     analysis,
     simulation,
     survival,
     histogram,
-    scannedLines: allRunners.length * 14,
+    scannedLines: allRunners.length,
     valueCount: allRunners.filter((r) => r.edge >= MIN_EDGE).length,
-    avgMargin: board.reduce((sum, m) => sum + m.margin, 0) / board.length,
+    avgMargin: board.length ? board.reduce((sum, m) => sum + m.margin, 0) / board.length : 0,
   };
 };

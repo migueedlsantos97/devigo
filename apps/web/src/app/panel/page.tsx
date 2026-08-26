@@ -6,7 +6,7 @@ import { formatMoney, formatOdds, formatPercent, getDictionary, LOCALE_META } fr
 import { LangSwitch } from '@/components/lang-switch';
 import { Wordmark } from '@/components/logo';
 import { useLocale } from '@/lib/locale';
-import { BANKROLL, BOOK_COUNT, KELLY_MULTIPLIER, MIN_EDGE, SIM_BANKROLL } from '@/lib/markets';
+import { KELLY_MULTIPLIER, MIN_EDGE, SIM_BANKROLL } from '@/lib/markets';
 import { usePanel } from '@/lib/ticket-store';
 
 const survivalColor = (p: number): string => (p > 0.4 ? '#34d399' : p > 0.15 ? '#f59e0b' : '#f43f5e');
@@ -64,17 +64,33 @@ export default function PanelPage() {
           </nav>
         </div>
         <div className="flex items-center gap-3.5">
-          <div className="hidden shrink-0 items-center gap-[7px] whitespace-nowrap font-mono text-[11px] text-[#a1a1aa] lg:flex">
-            <span className="dv-pulse h-1.5 w-1.5 rounded-full bg-ev" />
-            {t.feed(String(BOOK_COUNT))}
+          <div className="hidden shrink-0 items-center gap-[7px] whitespace-nowrap font-mono text-[11px] lg:flex">
+            {panel.source === 'live' ? (
+              <>
+                <span className="dv-pulse h-1.5 w-1.5 rounded-full bg-ev" />
+                <span className="text-[#a1a1aa]">{t.feedLive}</span>
+              </>
+            ) : (
+              <>
+                <span className="h-1.5 w-1.5 rounded-full bg-risk" />
+                <span className="text-risk">{t.feedDemo}</span>
+              </>
+            )}
           </div>
           <LangSwitch locale={locale} onChange={setLocale} />
-          <div className="hidden shrink-0 items-center gap-2 whitespace-nowrap rounded-lg border border-ctrl py-[5px] pl-1.5 pr-2.5 sm:flex">
-            <span className="h-[22px] w-[22px] rounded-[5px] bg-[#27272a]" />
-            <span className="text-xs text-[#71717a]">
-              {t.bankrollLabel} <span className="font-mono text-[#f4f4f5]">{money(BANKROLL)}</span>
-            </span>
-          </div>
+          <label className="hidden shrink-0 items-center gap-2 whitespace-nowrap rounded-lg border border-ctrl py-[5px] pl-2.5 pr-2.5 sm:flex">
+            <span className="text-xs text-[#71717a]">{t.bankrollLabel}</span>
+            <input
+              type="number"
+              min={1}
+              step={50}
+              value={panel.bankroll}
+              onChange={(e) => panel.setBankroll(Number(e.target.value))}
+              className="w-[84px] border-none bg-transparent text-right font-mono text-xs text-[#f4f4f5] outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+              aria-label={t.bankrollLabel}
+            />
+            <span className="font-mono text-xs text-[#71717a]">{LOCALE_META[locale].currency === 'EUR' ? '€' : '$'}</span>
+          </label>
         </div>
       </header>
 
@@ -262,7 +278,7 @@ export default function PanelPage() {
                 <div className="text-[10.5px] uppercase tracking-[.05em] text-[#71717a]">
                   {t.stats.kelly} ({Math.round(KELLY_MULTIPLIER * 100)}%)
                 </div>
-                <div className="mt-1 font-mono text-2xl font-semibold text-[#f4f4f5]">{analysis ? money(analysis.kellyFraction * BANKROLL) : '—'}</div>
+                <div className="mt-1 font-mono text-2xl font-semibold text-[#f4f4f5]">{analysis ? money(analysis.kellyFraction * panel.bankroll) : '—'}</div>
                 <div className="mt-[2px] font-mono text-[11px] text-[#52525b]">{analysis ? t.stats.ofBankroll(pct(analysis.kellyFraction, 2)) : '—'}</div>
               </div>
             </div>
