@@ -75,6 +75,34 @@ export interface Dictionary {
     readonly manualPrice: string;
     readonly manualTag: string;
   };
+  readonly scan: {
+    readonly title: string;
+    readonly subtitle: string;
+    readonly upload: string;
+    readonly dropHint: string;
+    readonly analyzing: string;
+    readonly errorGeneric: string;
+    readonly errorNoKey: string;
+    readonly errorNoLegs: string;
+    readonly extracted: (n: number) => string;
+    readonly colSelection: string;
+    readonly colPrice: string;
+    readonly stake: string;
+    readonly vig: string;
+    readonly vigHelp: string;
+    readonly paid: string;
+    readonly fairRange: string;
+    readonly probPaid: string;
+    readonly probReal: string;
+    readonly evRange: string;
+    readonly houseTake: string;
+    readonly verdict: (holdPct: string, holdMoney: string) => string;
+    readonly verdictPositive: string;
+    readonly matchNote: string;
+    readonly again: string;
+    readonly toPanel: string;
+    readonly disclaimer: string;
+  };
   readonly footer: { legal: string };
 }
 
@@ -202,6 +230,34 @@ const es: Dictionary = {
     manualPrice: 'Escribe la cuota que te ofrece tu casa para compararla contra el consenso',
     manualTag: 'MANUAL',
   },
+  scan: {
+    title: 'Escáner de boletos',
+    subtitle: 'Sube la captura de cualquier boleto y mira cuánto paga de verdad — y cuánto se queda la casa.',
+    upload: 'Subir captura',
+    dropHint: 'Arrastra la imagen, pégala (Ctrl+V) o toca para elegir el archivo',
+    analyzing: 'Leyendo el boleto…',
+    errorGeneric: 'No se pudo analizar la imagen. Prueba con una captura más nítida.',
+    errorNoKey: 'El escáner no está configurado en este servidor (falta ANTHROPIC_API_KEY).',
+    errorNoLegs: 'No se encontraron selecciones en la imagen. Prueba con una captura del boleto completo.',
+    extracted: (n) => n + (n === 1 ? ' línea extraída' : ' líneas extraídas'),
+    colSelection: 'Selección',
+    colPrice: 'Cuota',
+    stake: 'Importe',
+    vig: 'Margen por línea',
+    vigHelp: 'Comisión que la casa esconde en cada cuota. En cuotas cortas de combinada suele ser 2–4% por lado. Mueve el deslizador para ver el rango.',
+    paid: 'Te pagan',
+    fairRange: 'Cuota justa',
+    probPaid: 'Prob. que te pagan',
+    probReal: 'Prob. real estimada',
+    evRange: 'Valor esperado',
+    houseTake: 'Se queda la casa',
+    verdict: (holdPct, holdMoney) => 'La casa se queda ' + holdPct + ' del valor de este boleto (' + holdMoney + ' de expectativa). El margen de cada línea se multiplica: cuantas más selecciones, más grande el impuesto invisible.',
+    verdictPositive: 'Este boleto tiene expectativa positiva bajo el margen asumido — raro en combinadas: verifica las cuotas contra el consenso en el panel.',
+    matchNote: 'Cálculo con el motor @devigo/core sobre las líneas extraídas. Ajusta cuotas o borra líneas si la lectura falló.',
+    again: 'Escanear otro',
+    toPanel: 'Abrir el panel',
+    disclaimer: 'La justa exacta requiere el mercado completo de cada línea; el rango usa el margen por línea del deslizador.',
+  },
   footer: { legal: '© 2026 Devigo. Herramienta de modelado, no consejo de apuestas. +18.' },
 };
 
@@ -328,6 +384,34 @@ const en: Dictionary = {
     margin: 'Commission the book hides inside this market’s prices. Average across quoted books.',
     manualPrice: 'Type the odds your book offers to compare them against the consensus',
     manualTag: 'MANUAL',
+  },
+  scan: {
+    title: 'Ticket scanner',
+    subtitle: 'Upload a screenshot of any bet slip and see what it really pays — and what the house keeps.',
+    upload: 'Upload screenshot',
+    dropHint: 'Drag the image, paste it (Ctrl+V) or tap to pick a file',
+    analyzing: 'Reading the slip…',
+    errorGeneric: 'Could not analyze the image. Try a sharper screenshot.',
+    errorNoKey: 'The scanner is not configured on this server (ANTHROPIC_API_KEY missing).',
+    errorNoLegs: 'No selections found in the image. Try a screenshot of the full slip.',
+    extracted: (n) => n + (n === 1 ? ' leg extracted' : ' legs extracted'),
+    colSelection: 'Selection',
+    colPrice: 'Odds',
+    stake: 'Stake',
+    vig: 'Margin per leg',
+    vigHelp: 'Commission the book hides in each price. On short parlay prices it is typically 2–4% per side. Move the slider to see the range.',
+    paid: 'You are paid',
+    fairRange: 'Fair odds',
+    probPaid: 'Implied probability',
+    probReal: 'Estimated real probability',
+    evRange: 'Expected value',
+    houseTake: 'House keeps',
+    verdict: (holdPct, holdMoney) => 'The house keeps ' + holdPct + ' of this ticket (' + holdMoney + ' of expectation). Each leg compounds the margin: the more selections, the bigger the invisible tax.',
+    verdictPositive: 'This slip has positive expectation under the assumed margin — rare for parlays: verify the prices against the consensus in the panel.',
+    matchNote: 'Computed by the @devigo/core engine over the extracted legs. Edit odds or delete legs if the reading missed.',
+    again: 'Scan another',
+    toPanel: 'Open the console',
+    disclaimer: 'Exact fair odds need each leg’s full market; the range uses the per-leg margin from the slider.',
   },
   footer: { legal: '© 2026 Devigo. Modelling tool, not betting advice. 18+.' },
 };

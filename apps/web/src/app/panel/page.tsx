@@ -62,7 +62,7 @@ export default function PanelPage() {
           </Link>
           <nav className="hidden gap-[22px] overflow-hidden text-[13px] text-[#71717a] md:flex">
             <span className="whitespace-nowrap font-medium text-[#f4f4f5]">{t.panelNav.builder}</span>
-            <span className="whitespace-nowrap">{t.panelNav.scanner}</span>
+            <Link href="/scan" className="whitespace-nowrap text-[#71717a] hover:text-[#f4f4f5]">{t.panelNav.scanner}</Link>
             <span className="whitespace-nowrap">{t.panelNav.backtest}</span>
             <span className="whitespace-nowrap">{t.panelNav.bankroll}</span>
           </nav>
