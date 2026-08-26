@@ -9,6 +9,7 @@ import {
   devig,
   simulateTicket,
   survivalCurve,
+  type BuildMode,
   type CorrelationMatrix,
   type Leg,
   type SimulationResult,
@@ -106,8 +107,8 @@ export interface PanelState {
   readonly remove: (id: string) => void;
   readonly clear: () => void;
   readonly autoBuild: () => void;
-  /** Builds a parlay from the best-value selections aiming for a target profit. Returns whether it was reachable. */
-  readonly buildForGoal: (targetProfit: number) => boolean;
+  /** Builds a parlay aiming for a target profit, in the given risk style. Returns whether it was reachable. */
+  readonly buildForGoal: (targetProfit: number, mode: BuildMode) => boolean;
   readonly stake: number;
   readonly setStake: (v: number) => void;
   readonly corr: number;
@@ -330,7 +331,7 @@ export const usePanel = (locale: Locale): PanelState => {
       }),
     autoBuild: () =>
       setSelected(allRunners.filter((r) => r.edge >= MIN_EDGE).slice(0, 4).map((r) => r.id)),
-    buildForGoal: (targetProfit) => {
+    buildForGoal: (targetProfit, mode) => {
       if (!Number.isFinite(targetProfit) || targetProfit <= 0 || board.length === 0) return false;
       const candidates = board.flatMap((market) =>
         market.runners.map((r) => ({
@@ -341,7 +342,7 @@ export const usePanel = (locale: Locale): PanelState => {
         })),
       );
       const targetPrice = 1 + targetProfit / stake;
-      const result = buildTicketForTarget(candidates, targetPrice, 15);
+      const result = buildTicketForTarget(candidates, targetPrice, 15, mode);
       setSelected(result.legIds);
       return result.reached;
     },

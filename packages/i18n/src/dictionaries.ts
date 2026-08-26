@@ -43,6 +43,11 @@ export interface Dictionary {
     goalLabel: string; goalPlaceholder: string; goalBuild: string; goalHelp: string;
     goalReached: (amount: string) => string;
     goalShort: (target: string, achieved: string) => string;
+    modeLabel: string;
+    modeConservative: string;
+    modeBalanced: string;
+    modeFantasy: string;
+    modeHelp: string;
   };
   readonly stats: {
     combinedPrice: string; fairPrice: string; expectedValue: string; kelly: string;
@@ -232,6 +237,11 @@ const es: Dictionary = {
     goalHelp: 'Escribe cuánto querés ganar si acierta todo. Devigo arma la combinada con las selecciones de más valor hasta acercarse a esa cifra — después podés sumar o quitar líneas y ves en vivo si seguís llegando al objetivo.',
     goalReached: (amount) => '✓ Con esta combinada ganarías ' + amount + ' o más.',
     goalShort: (target, achieved) => 'Con esta combinada ganarías ' + achieved + '. Sumá selecciones para llegar a ' + target + '.',
+    modeLabel: 'Estilo',
+    modeConservative: 'Conservador',
+    modeBalanced: 'Arriesgado',
+    modeFantasy: 'Fantasy',
+    modeHelp: 'Conservador prioriza las selecciones más seguras (mayor probabilidad), aunque haga falta más líneas. Arriesgado prioriza la mejor ventaja sobre la línea justa — es el comportamiento por defecto. Fantasy ignora el valor por completo y persigue las cuotas más altas disponibles: pocas líneas, paga una banda enorme, acierta muy pocas veces.',
   },
   stats: {
     combinedPrice: 'Cuota combinada', fairPrice: 'Cuota justa', expectedValue: 'Valor esperado', kelly: 'Kelly',
@@ -432,6 +442,11 @@ const en: Dictionary = {
     goalHelp: "Type how much you want to win if every leg lands. Devigo builds the parlay from the best-value selections to get close to that figure — then add or drop legs and watch live whether you're still on track.",
     goalReached: (amount) => '✓ This parlay would win you ' + amount + ' or more.',
     goalShort: (target, achieved) => 'This parlay would win you ' + achieved + '. Add more legs to reach ' + target + '.',
+    modeLabel: 'Style',
+    modeConservative: 'Conservative',
+    modeBalanced: 'Aggressive',
+    modeFantasy: 'Fantasy',
+    modeHelp: 'Conservative favours the safest (highest-probability) selections, even if it needs more legs. Aggressive chases the best edge over the fair line — the default behaviour. Fantasy ignores value entirely and chases the highest odds available: few legs, pays a massive band, hits very rarely.',
   },
   stats: {
     combinedPrice: 'Combined price', fairPrice: 'Fair price', expectedValue: 'Expected value', kelly: 'Kelly',

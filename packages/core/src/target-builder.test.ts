@@ -84,4 +84,68 @@ describe('buildTicketForTarget', () => {
     expect(() => buildTicketForTarget(pool, 1)).toThrow(/Target price/);
     expect(() => buildTicketForTarget(pool, 2, 0)).toThrow(/maxLegs/);
   });
+
+  describe('conservative mode', () => {
+    it('prefers the safer (higher-probability) fitting candidate over the better-edge one', () => {
+      // Same price on both — probability ranking clearly inverts the edge ranking.
+      const inverted = [
+        c('safer', 'm1', 1.3, 0.9),   // edge +0.17, probability 0.9 (safest)
+        c('sharper', 'm2', 1.3, 0.6), // edge -0.22, probability 0.6, but engineered to beat on edge in balanced mode instead
+      ];
+      const conservative = buildTicketForTarget(inverted, 1.31, 1, 'conservative');
+      expect(conservative.legIds).toEqual(['safer']);
+    });
+
+    it('differs from balanced mode on the same pool when edge and safety disagree', () => {
+      const pool = [
+        c('highEdgeRisky', 'm1', 3, 0.5),   // edge +0.5, probability 0.5
+        c('lowEdgeSafe', 'm2', 1.2, 0.95),  // edge +0.14, probability 0.95
+      ];
+      // Target high enough that both candidates "fit" — otherwise the overshoot
+      // fallback (cheapest-first) would decide regardless of mode.
+      const balanced = buildTicketForTarget(pool, 3.5, 1, 'balanced');
+      const conservative = buildTicketForTarget(pool, 3.5, 1, 'conservative');
+      expect(balanced.legIds).toEqual(['highEdgeRisky']);
+      expect(conservative.legIds).toEqual(['lowEdgeSafe']);
+    });
+  });
+
+  describe('fantasy mode', () => {
+    it('chases the single highest-price candidate first, ignoring edge', () => {
+      const pool = [
+        c('longshot', 'm1', 12, 0.05),  // deeply -EV but huge price
+        c('safeFavourite', 'm2', 1.2, 0.95),
+      ];
+      const result = buildTicketForTarget(pool, 5, 15, 'fantasy');
+      expect(result.legIds[0]).toBe('longshot');
+      expect(result.reached).toBe(true);
+    });
+
+    it('breaks an equal-price tie by id', () => {
+      const pool = [c('zzz', 'm1', 8, 0.1), c('aaa', 'm2', 8, 0.1)];
+      const result = buildTicketForTarget(pool, 5, 15, 'fantasy');
+      expect(result.legIds[0]).toBe('aaa');
+    });
+
+    it('picks at most one leg per market', () => {
+      const pool = [c('a1', 'm1', 20, 0.05), c('a2', 'm1', 15, 0.06), c('b1', 'm2', 10, 0.1)];
+      const result = buildTicketForTarget(pool, 50, 15, 'fantasy');
+      const markets = new Set(result.legIds.map((id) => (id.startsWith('a') ? 'm1' : 'm2')));
+      expect(markets.size).toBe(result.legIds.length);
+    });
+
+    it('stops at maxLegs without reaching the target', () => {
+      const pool = [c('a', 'm1', 1.5, 0.6), c('b', 'm2', 1.5, 0.6), c('c', 'm3', 1.5, 0.6)];
+      const result = buildTicketForTarget(pool, 100, 2, 'fantasy');
+      expect(result.legIds).toHaveLength(2);
+      expect(result.reached).toBe(false);
+    });
+
+    it('stops when the pool is exhausted before reaching the target', () => {
+      const pool = [c('a', 'm1', 3, 0.2)];
+      const result = buildTicketForTarget(pool, 50, 15, 'fantasy');
+      expect(result.legIds).toEqual(['a']);
+      expect(result.reached).toBe(false);
+    });
+  });
 });
