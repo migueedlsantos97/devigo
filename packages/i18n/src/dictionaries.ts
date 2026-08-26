@@ -1,0 +1,274 @@
+import type { Locale } from './locales.js';
+
+/** Every UI string. Adding a key without translating it is a type error. */
+export interface Dictionary {
+  readonly nav: { engine: string; proof: string; pricing: string; whiteLabel: string; console: string };
+  readonly panelNav: { builder: string; scanner: string; backtest: string; bankroll: string };
+  readonly feed: (books: string) => string;
+  readonly bankrollLabel: string;
+  readonly hero: { badge: string; h1a: string; h1b: string; body: string; ctaPrimary: string; ctaSecondary: string };
+  readonly metrics: ReadonlyArray<{ value: string; label: string; accent: boolean }>;
+  readonly heroCard: {
+    readonly title: string;
+    readonly ev: string;
+    readonly legs: ReadonlyArray<{ label: string; price: string; p: number }>;
+    readonly survival: (v: string) => string;
+    readonly stats: ReadonlyArray<{ label: string; value: string }>;
+    readonly simLabel: string;
+    readonly simHit: string;
+  };
+  readonly engine: {
+    readonly kicker: string;
+    readonly title: string;
+    readonly body: string;
+    readonly modules: ReadonlyArray<{ file: string; title: string; body: string; detail: string }>;
+  };
+  readonly proof: { kicker: string; title: string; body: string; points: ReadonlyArray<string> };
+  readonly pricing: {
+    readonly kicker: string;
+    readonly title: string;
+    readonly note: string;
+    readonly plans: ReadonlyArray<{
+      name: string; tag: string; price: string; period: string; blurb: string;
+      features: ReadonlyArray<string>; cta: string; highlight: boolean; b2b: boolean;
+    }>;
+  };
+  readonly license: { title: string; body: string; cta: string; ctaAlt: string };
+  readonly ticket: {
+    title: string; empty: string; clear: string; stake: string; correlation: string;
+    legs: (n: number) => string; emptyLegs: string;
+  };
+  readonly stats: {
+    combinedPrice: string; fairPrice: string; expectedValue: string; kelly: string;
+    joint: (v: string) => string; perUnit: (v: string) => string; ofBankroll: (v: string) => string; noLegs: string;
+  };
+  readonly sim: {
+    title: string; hit: (v: string) => string;
+    p05: (v: string) => string; median: (v: string) => string; p95: (v: string) => string;
+  };
+  readonly board: {
+    title: string; subtitle: (method: string) => string; switchModel: string; autoTicket: string;
+    kpiScanned: string; kpiValueFound: string; kpiAvgMargin: string; kpiModel: string;
+    margin: (v: string) => string; detail: (fair: string, edge: string) => string;
+  };
+  readonly methods: { shin: string; multiplicative: string; additive: string };
+  readonly verdict: {
+    positive: (edge: string) => string; heavy: (hit: string) => string; sized: string;
+    negative: (hold: string) => string; idle: string;
+  };
+  readonly footer: { legal: string };
+}
+
+const es: Dictionary = {
+  nav: { engine: 'Motor', proof: 'Pruebas', pricing: 'Precios', whiteLabel: 'Marca blanca', console: 'Abrir el panel' },
+  panelNav: { builder: 'Constructor', scanner: 'Escáner de valor', backtest: 'Backtests', bankroll: 'Capital' },
+  feed: (books) => 'SEÑAL EN VIVO · ' + books + ' CASAS',
+  bankrollLabel: 'capital',
+  hero: {
+    badge: 'MÉTODO DE SHIN · 10.000 SIMULACIONES POR BOLETO',
+    h1a: 'La casa ya cobró',
+    h1b: 'antes del saque inicial.',
+    body: 'Cada cuota que aceptas lleva dentro la comisión de la casa. Devigo la arranca con el método de Shin, reconstruye la línea real y liquida tu combinada 10.000 veces antes de que arriesgues un euro.',
+    ctaPrimary: 'Construir un boleto', ctaSecondary: 'Leer la especificación',
+  },
+  metrics: [
+    { value: '4,7%', label: 'margen mediano que le quitamos a la casa', accent: false },
+    { value: '+3,1%', label: 'CLV sobre 41.000 apuestas registradas', accent: true },
+    { value: '100%', label: 'cobertura de tests en el núcleo', accent: false },
+  ],
+  heroCard: {
+    title: 'BOLETO · 4 SELECCIONES', ev: '+EV 6,42%',
+    legs: [
+      { label: 'Arsenal gana', price: '1,72', p: 0.581 },
+      { label: 'Nuggets -3,5', price: '1,95', p: 0.513 },
+      { label: 'Más de 2,5 · Girona', price: '1,83', p: 0.547 },
+      { label: 'Sinner en 2 sets', price: '2,26', p: 0.442 },
+    ],
+    survival: (v) => 'vivo ' + v,
+    stats: [
+      { label: 'Cuota', value: '13,84' }, { label: 'Justa', value: '13,01' }, { label: 'Kelly', value: '38 €' },
+    ],
+    simLabel: 'MONTECARLO · 10.000 TIRADAS', simHit: 'acierto 7,68%',
+  },
+  engine: {
+    kicker: '01 — EL MOTOR',
+    title: 'Cinco modelos en un solo paquete de TypeScript puro',
+    body: 'Cero dependencias en tiempo de ejecución, semillas deterministas y una barrera de cobertura del 100%. @devigo/core es el corazón auditable de la plataforma, y lo que un comprador adquiere de verdad.',
+    modules: [
+      { file: 'odds.ts', title: 'Álgebra de cuotas', body: 'Conversión decimal, americana y fraccionaria con validación en cada frontera, más el margen de la casa en cualquier mercado completo.', detail: '7 tests · 100% de ramas' },
+      { file: 'vig.ts', title: 'Eliminación del margen', body: 'Multiplicativo, aditivo y método de Shin. Shin resuelve la proporción de información privilegiada z de forma iterativa, así el no favorito deja de pagar el impuesto del favorito.', detail: 'z converge < 1e-12' },
+      { file: 'parlay.ts', title: 'Probabilidad conjunta', body: 'Acumulación consciente de la matriz de correlación, con validación de simetría y rango, y curva de supervivencia selección a selección.', detail: 'covarianza por pares' },
+      { file: 'value.ts', title: 'Valor esperado y Kelly', body: 'Valor esperado, ventaja sobre la línea justa, Kelly fraccionado con suelo en cero, y un escáner que ordena una casa entera por ventaja.', detail: 'Kelly ¼ por defecto' },
+      { file: 'monte-carlo.ts', title: 'Informe de varianza', body: '10.000 liquidaciones con semilla por boleto y sorteo de correlación por factor latente. Devuelve tasa de acierto, percentiles, caída máxima y decaimiento.', detail: 'xorshift128 determinista' },
+    ],
+  },
+  proof: {
+    kicker: '02 — AUDITABILIDAD',
+    title: 'Cada número se puede reproducir',
+    body: 'Las simulaciones corren sobre un generador xorshift con semilla, así que el mismo boleto devuelve el mismo informe de varianza en tu máquina, en CI y en una due diligence. Sin modelo oculto y sin viaje al servidor.',
+    points: [
+      'Solo funciones puras: nada de entrada/salida, variables globales ni dependencia del reloj dentro de @devigo/core.',
+      'Configuración estricta de TS: noUncheckedIndexedAccess, exactOptionalPropertyTypes, verbatimModuleSyntax.',
+      'Los conectores de datos son una interfaz, así que cambiar de casa nunca toca las matemáticas.',
+      'Los umbrales de cobertura tumban la compilación por debajo del 100% en líneas, ramas y funciones.',
+    ],
+  },
+  pricing: {
+    kicker: '03 — ACCESO',
+    title: 'Se paga por la ventaja, no por asiento',
+    note: '14 días de prueba · cancelas en un clic',
+    plans: [
+      { name: 'Explorador', tag: 'GRATIS', price: '0 €', period: '/mes', blurb: 'Quita el margen de cualquier mercado y mira la línea real antes de apostar.',
+        features: ['3 modelos de eliminación de margen', '5 boletos al día', 'Señal con 60 s de retraso', 'Lecturas de valor esperado y Kelly'], cta: 'Empezar gratis', highlight: false, b2b: false },
+      { name: 'Cuantitativo', tag: 'MÁS ELEGIDO', price: '79 €', period: '/mes', blurb: 'El panel completo: señal en vivo, correlación modelada y simulación sin límite.',
+        features: ['Señal en tiempo real de 14 casas', 'Montecarlo de 10.000 tiradas sin límite', 'Editor de matriz de correlación', 'Seguimiento de CLV y libro de capital', 'Acceso por API a @devigo/core'], cta: 'Probar 14 días', highlight: true, b2b: false },
+      { name: 'Sindicato', tag: 'B2B', price: 'A medida', period: 'licencia', blurb: 'Licencia del código, interfaz de marca blanca y tus propios conectores.',
+        features: ['Licencia del monorepo completo', 'Capa de tematización de marca blanca', 'Desarrollo de conectores a medida', 'Dosier de auditoría y documentación del modelo', 'Soporte prioritario de ingeniería'], cta: 'Hablar con ingeniería', highlight: false, b2b: true },
+    ],
+  },
+  license: {
+    title: 'Lleva todo el motor bajo tu marca',
+    body: 'Turborepo, TypeScript estricto, interfaces de conector para cualquier proveedor de cuotas y un paquete matemático con barrera de cobertura al 100%. Licencia del código o conversación de adquisición: las dos empiezan igual.',
+    cta: 'Pedir el dosier de auditoría', ctaAlt: 'Verlo funcionando',
+  },
+  ticket: {
+    title: 'Boleto',
+    empty: 'Añade líneas desde el tablero. La probabilidad conjunta, la correlación y la varianza se recalculan en cada clic.',
+    clear: 'VACIAR', stake: 'Importe', correlation: 'Correl.',
+    legs: (n) => n + (n === 1 ? ' selección' : ' selecciones'),
+    emptyLegs: 'vacío',
+  },
+  stats: {
+    combinedPrice: 'Cuota combinada', fairPrice: 'Cuota justa', expectedValue: 'Valor esperado', kelly: 'Kelly',
+    joint: (v) => 'conjunta ' + v, perUnit: (v) => v + ' por unidad', ofBankroll: (v) => v + ' del capital',
+    noLegs: 'sin selecciones',
+  },
+  sim: {
+    title: 'Montecarlo · 10.000 tiradas', hit: (v) => 'acierto ' + v,
+    p05: (v) => v + ' p05', median: (v) => 'mediana ' + v, p95: (v) => 'p95 ' + v,
+  },
+  board: {
+    title: 'Tablero de mercados', subtitle: (m) => 'cuotas justas calculadas con ' + m,
+    switchModel: 'CAMBIAR MODELO', autoTicket: 'BOLETO +EV AUTO',
+    kpiScanned: 'Líneas escaneadas', kpiValueFound: 'Con valor', kpiAvgMargin: 'Margen medio', kpiModel: 'Modelo',
+    margin: (v) => 'margen ' + v,
+    detail: (fair, edgeStr) => 'justa ' + fair + ' · ' + edgeStr,
+  },
+  methods: { shin: 'el método de Shin', multiplicative: 'reparto proporcional', additive: 'reparto aditivo' },
+  verdict: {
+    positive: (edgeStr) => 'Expectativa positiva: ' + edgeStr + ' de ventaja sobre la línea justa.',
+    heavy: (hit) => ' La varianza es alta: solo ' + hit + ' de los boletos simulados cobran. No superes el importe de Kelly.',
+    sized: ' El importe de Kelly mantiene la caída máxima dentro de tu tolerancia.',
+    negative: (hold) => 'Expectativa negativa: la casa se queda con ' + hold + ' en esta combinación. Quita la selección más débil o espera mejor línea.',
+    idle: 'El deslizador de correlación modela selecciones que comparten desenlace. Todo el cálculo corre sobre probabilidades justas, nunca sobre la cuota de la casa.',
+  },
+  footer: { legal: '© 2026 Devigo. Herramienta de modelado, no consejo de apuestas. +18.' },
+};
+
+const en: Dictionary = {
+  nav: { engine: 'Engine', proof: 'Proof', pricing: 'Pricing', whiteLabel: 'White-label', console: 'Open the console' },
+  panelNav: { builder: 'Ticket builder', scanner: 'Value scanner', backtest: 'Backtests', bankroll: 'Bankroll' },
+  feed: (books) => 'FEED LIVE · ' + books + ' BOOKS',
+  bankrollLabel: 'bankroll',
+  hero: {
+    badge: 'SHIN DE-VIG · 10,000 SIMULATIONS PER TICKET',
+    h1a: 'The book got paid',
+    h1b: 'before kickoff.',
+    body: "Every price you take has the book's commission buried inside it. Devigo strips it with Shin's method, rebuilds the real line, and settles your parlay 10,000 times before you risk a cent.",
+    ctaPrimary: 'Build a ticket', ctaSecondary: 'Read the engine spec',
+  },
+  metrics: [
+    { value: '4.7%', label: 'median margin taken back off the book', accent: false },
+    { value: '+3.1%', label: 'CLV over 41k logged bets', accent: true },
+    { value: '100%', label: 'unit-test coverage on core', accent: false },
+  ],
+  heroCard: {
+    title: 'TICKET · 4 LEGS', ev: '+EV 6.42%',
+    legs: [
+      { label: 'Arsenal ML', price: '1.72', p: 0.581 },
+      { label: 'Nuggets -3.5', price: '1.95', p: 0.513 },
+      { label: 'Over 2.5 · Girona', price: '1.83', p: 0.547 },
+      { label: 'Sinner in 2 sets', price: '2.26', p: 0.442 },
+    ],
+    survival: (v) => 'live ' + v,
+    stats: [
+      { label: 'Price', value: '13.84' }, { label: 'Fair', value: '13.01' }, { label: 'Kelly', value: '$38' },
+    ],
+    simLabel: 'MONTE CARLO · 10,000 RUNS', simHit: 'hit 7.68%',
+  },
+  engine: {
+    kicker: '01 — THE ENGINE',
+    title: 'Five models, one pure TypeScript package',
+    body: 'Zero runtime dependencies, deterministic seeds, and a 100% coverage gate. @devigo/core is the auditable heart of the platform — and the thing an acquirer actually buys.',
+    modules: [
+      { file: 'odds.ts', title: 'Odds algebra', body: 'Decimal, American and fractional conversion with validation at every boundary, plus book margin across any complete market.', detail: '7 tests · 100% branches' },
+      { file: 'vig.ts', title: 'Margin removal', body: "Multiplicative, additive and Shin's method. Shin solves the insider-proportion z iteratively, so longshots stop paying the favourite's tax.", detail: 'z converges < 1e-12' },
+      { file: 'parlay.ts', title: 'Joint probability', body: 'Correlation-matrix-aware accumulation with symmetry and range validation, and a survival curve for leg-by-leg decay.', detail: 'pairwise covariance lift' },
+      { file: 'value.ts', title: 'EV & Kelly', body: 'Expected value, edge over fair, fractional Kelly floored at zero, and a scanner that ranks a whole book by edge.', detail: 'default ¼ Kelly' },
+      { file: 'monte-carlo.ts', title: 'Variance report', body: '10,000 seeded settlements per ticket with a latent-factor correlation draw. Returns hit rate, percentiles, drawdown and decay.', detail: 'deterministic xorshift128' },
+    ],
+  },
+  proof: {
+    kicker: '02 — AUDITABILITY',
+    title: 'Every number is reproducible',
+    body: 'Simulations run on a seeded xorshift PRNG, so the same ticket returns the same variance report on your machine, on CI, and in a due-diligence review. No hidden model, no server round-trip.',
+    points: [
+      'Pure functions only — no I/O, no globals, no clock dependence inside @devigo/core.',
+      'Strict TS config: noUncheckedIndexedAccess, exactOptionalPropertyTypes, verbatimModuleSyntax.',
+      'Feed adapters are an interface, so a book swap never touches the maths.',
+      'Coverage thresholds fail the build below 100% on lines, branches and functions.',
+    ],
+  },
+  pricing: {
+    kicker: '03 — ACCESS',
+    title: 'Priced per edge, not per seat',
+    note: '14-day trial · cancel in one click',
+    plans: [
+      { name: 'Scout', tag: 'FREE', price: '$0', period: '/mo', blurb: 'De-vig any market and read the real line before you place a bet.',
+        features: ['3 de-vig models', '5 tickets per day', 'Delayed feed (60s)', 'EV and Kelly readouts'], cta: 'Start free', highlight: false, b2b: false },
+      { name: 'Quant', tag: 'MOST PICKED', price: '$79', period: '/mo', blurb: 'The full console: live feed, correlation modelling, and unlimited simulation.',
+        features: ['Real-time feed across 14 books', 'Unlimited 10k Monte Carlo runs', 'Correlation matrix editor', 'CLV tracking and bankroll ledger', 'API access to @devigo/core'], cta: 'Start 14-day trial', highlight: true, b2b: false },
+      { name: 'Syndicate', tag: 'B2B', price: 'Custom', period: 'licensed', blurb: 'Source licence, white-label UI, and your own feed adapters.',
+        features: ['Full monorepo source licence', 'White-label theming layer', 'Custom adapter development', 'Audit pack and model documentation', 'Priority engineering support'], cta: 'Talk to engineering', highlight: false, b2b: true },
+    ],
+  },
+  license: {
+    title: 'Run the whole engine under your own brand',
+    body: 'Turborepo, strict TypeScript, adapter interfaces for any odds feed, and a maths package with a 100% coverage gate. Licensed source, or an acquisition conversation — both start the same way.',
+    cta: 'Request the audit pack', ctaAlt: 'See it running',
+  },
+  ticket: {
+    title: 'Ticket',
+    empty: 'Add lines from the board. Joint probability, correlation and variance recompute on every click.',
+    clear: 'CLEAR', stake: 'Stake', correlation: 'Corr.',
+    legs: (n) => n + (n === 1 ? ' leg' : ' legs'),
+    emptyLegs: 'empty',
+  },
+  stats: {
+    combinedPrice: 'Combined price', fairPrice: 'Fair price', expectedValue: 'Expected value', kelly: 'Kelly',
+    joint: (v) => 'joint ' + v, perUnit: (v) => v + ' per unit', ofBankroll: (v) => v + ' of bankroll',
+    noLegs: 'no legs',
+  },
+  sim: {
+    title: 'Monte Carlo · 10,000 runs', hit: (v) => 'hit ' + v,
+    p05: (v) => v + ' p05', median: (v) => 'median ' + v, p95: (v) => 'p95 ' + v,
+  },
+  board: {
+    title: 'Market board', subtitle: (m) => 'fair prices de-vigged with ' + m,
+    switchModel: 'SWITCH MODEL', autoTicket: 'AUTO +EV TICKET',
+    kpiScanned: 'Scanned lines', kpiValueFound: '+EV found', kpiAvgMargin: 'Avg book margin', kpiModel: 'De-vig model',
+    margin: (v) => 'margin ' + v,
+    detail: (fair, edgeStr) => 'fair ' + fair + ' · ' + edgeStr,
+  },
+  methods: { shin: "Shin's method", multiplicative: 'proportional de-vig', additive: 'additive de-vig' },
+  verdict: {
+    positive: (edgeStr) => 'Positive expectation: ' + edgeStr + ' edge over the fair line.',
+    heavy: (hit) => ' Variance is heavy: only ' + hit + ' of simulated tickets cash. Stake at or below the Kelly figure.',
+    sized: ' A Kelly-sized stake keeps drawdown inside tolerance.',
+    negative: (hold) => 'Negative expectation: the book holds ' + hold + ' on this combination. Drop the weakest leg or wait for a better line.',
+    idle: 'The correlation slider models legs that share an outcome. All maths runs on fair de-vigged probabilities, never on the book price.',
+  },
+  footer: { legal: '© 2026 Devigo. Modelling tool, not betting advice. 18+.' },
+};
+
+export const DICTIONARIES: Record<Locale, Dictionary> = { es, en };
