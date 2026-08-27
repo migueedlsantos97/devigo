@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import type { Dictionary } from '@devigo/i18n';
-import { useAuth } from '@/lib/auth';
+import { useAuth, type AuthFailure } from '@/lib/auth';
 
 /** Email-code sign-in for cross-device history sync. Hidden when Supabase is unconfigured. */
 export function AccountBox({ t }: { t: Dictionary }) {
@@ -11,7 +11,7 @@ export function AccountBox({ t }: { t: Dictionary }) {
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [busy, setBusy] = useState(false);
-  const [failed, setFailed] = useState(false);
+  const [failure, setFailure] = useState<AuthFailure | null>(null);
 
   if (!auth.enabled) return null;
 
@@ -31,21 +31,33 @@ export function AccountBox({ t }: { t: Dictionary }) {
   }
 
   const sendCode = async (): Promise<void> => {
-    if (!email.includes('@')) return;
+    if (!email.includes('@')) {
+      setFailure('invalid-email');
+      return;
+    }
     setBusy(true);
-    setFailed(false);
-    const ok = await auth.sendCode(email.trim());
+    setFailure(null);
+    const reason = await auth.sendCode(email.trim());
     setBusy(false);
-    if (ok) setStep('code');
-    else setFailed(true);
+    if (reason === null) setStep('code');
+    else setFailure(reason);
   };
 
   const verify = async (): Promise<void> => {
     setBusy(true);
-    setFailed(false);
-    const ok = await auth.verifyCode(email.trim(), code.trim());
+    setFailure(null);
+    const reason = await auth.verifyCode(email.trim(), code.trim());
     setBusy(false);
-    if (!ok) setFailed(true);
+    setFailure(reason);
+  };
+
+  const failureText = (reason: AuthFailure): string => {
+    switch (reason) {
+      case 'invalid-email': return t.account.errorInvalidEmail;
+      case 'rate-limited': return t.account.errorRateLimited;
+      case 'bad-code': return t.account.errorBadCode;
+      case 'unknown': return t.account.error;
+    }
   };
 
   return (
@@ -94,7 +106,7 @@ export function AccountBox({ t }: { t: Dictionary }) {
             </button>
             <button
               type="button"
-              onClick={() => { setStep('email'); setCode(''); setFailed(false); }}
+              onClick={() => { setStep('email'); setCode(''); setFailure(null); }}
               className="min-h-[38px] cursor-pointer rounded-[9px] border border-ctrl-hover bg-transparent px-3 text-[12px] text-ink-2 hover:border-ink-5"
             >
               {t.account.back}
@@ -102,8 +114,8 @@ export function AccountBox({ t }: { t: Dictionary }) {
           </div>
         </div>
       )}
-      {failed && (
-        <p className="m-0 mt-2 text-[11.5px] text-danger-text">{t.account.error}</p>
+      {failure !== null && (
+        <p className="m-0 mt-2 text-[11.5px] text-danger">{failureText(failure)}</p>
       )}
     </div>
   );

@@ -143,6 +143,9 @@ export interface Dictionary {
     readonly verify: string;
     readonly back: string;
     readonly error: string;
+    readonly errorInvalidEmail: string;
+    readonly errorRateLimited: string;
+    readonly errorBadCode: string;
     readonly syncedAs: (email: string) => string;
     readonly signOut: string;
   };
@@ -419,6 +422,9 @@ const es: Dictionary = {
     verify: 'Entrar',
     back: 'Cambiar email',
     error: 'No funcionó. Revisa el email o el código e intenta de nuevo.',
+    errorInvalidEmail: 'Ese email no parece válido. Revisalo y probá de nuevo.',
+    errorRateLimited: 'Pediste varios códigos seguidos. Esperá unos minutos antes de pedir otro.',
+    errorBadCode: 'Ese código no sirve: o está mal escrito o ya venció. Revisá los 6 dígitos, o pedí uno nuevo.',
     syncedAs: (email) => 'Sincronizado como ' + email,
     signOut: 'Salir',
   },
@@ -695,6 +701,9 @@ const en: Dictionary = {
     verify: 'Sign in',
     back: 'Change email',
     error: 'That didn’t work. Check the email or code and try again.',
+    errorInvalidEmail: 'That email does not look valid. Check it and try again.',
+    errorRateLimited: 'You asked for several codes in a row. Wait a few minutes before asking for another.',
+    errorBadCode: 'That code will not work: either it is mistyped or it has expired. Check the 6 digits, or ask for a new one.',
     syncedAs: (email) => 'Synced as ' + email,
     signOut: 'Sign out',
   },
