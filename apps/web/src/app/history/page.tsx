@@ -5,6 +5,7 @@ import { useEffect, useMemo } from 'react';
 import { formatOdds, formatPercent, getDictionary, LOCALE_META } from '@devigo/i18n';
 import { AccountBox } from '@/components/account-box';
 import { CurrencySelect } from '@/components/currency-select';
+import { ThemeToggle } from '@/components/theme-toggle';
 import { InfoTip } from '@/components/info-tip';
 import { LangSwitch } from '@/components/lang-switch';
 import { Wordmark } from '@/components/logo';
@@ -14,10 +15,10 @@ import { useLocale } from '@/lib/locale';
 import type { OddsFeedResponse } from '@/lib/markets';
 
 const STATUS_STYLE: Record<TicketStatus, { color: string; border: string }> = {
-  pending: { color: '#a1a1aa', border: '#232329' },
-  won: { color: '#34d399', border: '#0f5c43' },
-  lost: { color: '#fda4af', border: '#7f1d3a' },
-  void: { color: '#71717a', border: '#232329' },
+  pending: { color: 'var(--text-2)', border: 'var(--ctrl)' },
+  won: { color: 'var(--ev)', border: 'var(--ev-border)' },
+  lost: { color: 'var(--danger-text)', border: 'var(--danger-border)' },
+  void: { color: 'var(--text-3)', border: 'var(--ctrl)' },
 };
 
 export default function HistoryPage() {
@@ -71,12 +72,13 @@ export default function HistoryPage() {
   const clvAvg = clvValues.length ? clvValues.reduce((a, b) => a + b, 0) / clvValues.length : null;
 
   return (
-    <div className="min-h-screen bg-canvas text-[#f4f4f5]">
-      <header className="sticky top-0 z-20 flex h-[60px] items-center justify-between gap-6 border-b border-edge px-4 backdrop-blur-[12px] md:px-7" style={{ background: 'rgba(9,9,11,.88)' }}>
+    <div className="min-h-screen bg-canvas text-ink">
+      <header className="sticky top-0 z-20 flex h-[60px] items-center justify-between gap-6 border-b border-edge px-4 backdrop-blur-[12px] md:px-7" style={{ background: 'var(--header-bg)' }}>
         <Link href="/" className="shrink-0"><Wordmark compact /></Link>
         <div className="flex items-center gap-3.5">
           <LangSwitch locale={locale} onChange={setLocale} />
           <CurrencySelect value={currency} onChange={setCurrency} label={t.currencyLabel} />
+          <ThemeToggle label={t.themeLabel} />
           <Link href="/panel" className="inline-flex min-h-[36px] shrink-0 items-center whitespace-nowrap rounded-lg bg-ev px-[15px] py-2 text-[12.5px] font-semibold text-ev-on hover:bg-ev-light">
             {t.panelNav.builder}
           </Link>
@@ -86,7 +88,7 @@ export default function HistoryPage() {
       <main className="mx-auto max-w-[860px] px-4 pb-16 pt-8 md:px-6">
         <div className="flex items-baseline justify-between gap-4">
           <h1 className="m-0 text-[26px] font-semibold tracking-[-.02em]">{t.history.title}</h1>
-          <span className="font-mono text-[11px] text-[#71717a]">{t.history.summary(tickets.length)}</span>
+          <span className="font-mono text-[11px] text-ink-3">{t.history.summary(tickets.length)}</span>
         </div>
 
         <div className="mt-5">
@@ -95,31 +97,31 @@ export default function HistoryPage() {
 
         <div className="mt-4 grid grid-cols-2 gap-2.5 md:grid-cols-4">
           <div className="rounded-xl border border-edge bg-raised px-4 py-3">
-            <div className="text-[10.5px] uppercase tracking-[.05em] text-[#71717a]">{t.history.totalStaked}</div>
+            <div className="text-[10.5px] uppercase tracking-[.05em] text-ink-3">{t.history.totalStaked}</div>
             <div className="mt-1 font-mono text-[19px] font-semibold">{money(summary.staked)}</div>
           </div>
           <div className="rounded-xl border border-edge bg-raised px-4 py-3">
-            <div className="text-[10.5px] uppercase tracking-[.05em] text-[#71717a]">{t.history.realPL}</div>
-            <div className="mt-1 font-mono text-[19px] font-semibold" style={{ color: summary.real > 0 ? '#34d399' : summary.real < 0 ? '#f43f5e' : '#f4f4f5' }}>
+            <div className="text-[10.5px] uppercase tracking-[.05em] text-ink-3">{t.history.realPL}</div>
+            <div className="mt-1 font-mono text-[19px] font-semibold" style={{ color: summary.real > 0 ? 'var(--ev)' : summary.real < 0 ? 'var(--danger)' : 'var(--text)' }}>
               {summary.real >= 0 ? '+' : ''}{money(summary.real)}
             </div>
           </div>
           <div className="rounded-xl border border-edge bg-raised px-4 py-3">
-            <div className="text-[10.5px] uppercase tracking-[.05em] text-[#71717a]">{t.history.expectedPL}</div>
-            <div className="mt-1 font-mono text-[19px] font-semibold" style={{ color: summary.expected >= 0 ? '#34d399' : '#f43f5e' }}>
+            <div className="text-[10.5px] uppercase tracking-[.05em] text-ink-3">{t.history.expectedPL}</div>
+            <div className="mt-1 font-mono text-[19px] font-semibold" style={{ color: summary.expected >= 0 ? 'var(--ev)' : 'var(--danger)' }}>
               {summary.expected >= 0 ? '+' : ''}{money(summary.expected)}
             </div>
           </div>
           <div className="rounded-xl border border-edge bg-raised px-4 py-3">
-            <div className="flex items-center gap-1.5 text-[10.5px] uppercase tracking-[.05em] text-[#71717a]">{t.history.clvAvg} <InfoTip tip={t.history.clvHelp} /></div>
-            <div className="mt-1 font-mono text-[19px] font-semibold" style={{ color: clvAvg === null ? '#52525b' : clvAvg >= 0 ? '#34d399' : '#f43f5e' }}>
+            <div className="flex items-center gap-1.5 text-[10.5px] uppercase tracking-[.05em] text-ink-3">{t.history.clvAvg} <InfoTip tip={t.history.clvHelp} /></div>
+            <div className="mt-1 font-mono text-[19px] font-semibold" style={{ color: clvAvg === null ? 'var(--text-4)' : clvAvg >= 0 ? 'var(--ev)' : 'var(--danger)' }}>
               {clvAvg === null ? '—' : (clvAvg >= 0 ? '+' : '') + pct(clvAvg, 2)}
             </div>
           </div>
         </div>
 
         {tickets.length === 0 && (
-          <div className="mt-8 rounded-2xl border border-edge bg-raised px-6 py-10 text-center text-[13px] leading-[1.6] text-[#71717a]">
+          <div className="mt-8 rounded-2xl border border-edge bg-raised px-6 py-10 text-center text-[13px] leading-[1.6] text-ink-3">
             {t.history.empty}
           </div>
         )}
@@ -136,7 +138,7 @@ export default function HistoryPage() {
                     <span className="rounded-[5px] border px-2 py-[2px] font-mono text-[10px] font-semibold" style={{ color: style.color, borderColor: style.border }}>
                       {t.history[ticket.status === 'pending' ? 'statusPending' : ticket.status === 'won' ? 'statusWon' : ticket.status === 'lost' ? 'statusLost' : 'statusVoid']}
                     </span>
-                    <span className="font-mono text-[10.5px] text-[#52525b]">{t.history.savedAt(dateFmt.format(new Date(ticket.createdAt)))}</span>
+                    <span className="font-mono text-[10.5px] text-ink-4">{t.history.savedAt(dateFmt.format(new Date(ticket.createdAt)))}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     {(['won', 'lost', 'pending'] as const).map((s) => (
@@ -145,13 +147,13 @@ export default function HistoryPage() {
                         type="button"
                         onClick={() => setStatus(ticket.id, s)}
                         className={`min-h-[26px] cursor-pointer rounded-md border px-2 py-[2px] font-mono text-[9.5px] ${
-                          ticket.status === s ? 'border-ev-active text-ev' : 'border-ctrl text-[#71717a] hover:border-[#3f3f46]'
+                          ticket.status === s ? 'border-ev-active text-ev' : 'border-ctrl text-ink-3 hover:border-ink-5'
                         }`}
                       >
                         {s === 'won' ? t.history.statusWon : s === 'lost' ? t.history.statusLost : t.history.statusPending}
                       </button>
                     ))}
-                    <button type="button" onClick={() => remove(ticket.id)} className="cursor-pointer border-none bg-transparent font-mono text-[9.5px] text-[#52525b] hover:text-danger">
+                    <button type="button" onClick={() => remove(ticket.id)} className="cursor-pointer border-none bg-transparent font-mono text-[9.5px] text-ink-4 hover:text-danger">
                       {t.history.delete}
                     </button>
                   </div>
@@ -161,7 +163,7 @@ export default function HistoryPage() {
                     <div key={leg.runnerId} className="flex items-center justify-between gap-3 border-b border-hairline py-2 last:border-b-0">
                       <div className="min-w-0">
                         <span className="block overflow-hidden text-ellipsis whitespace-nowrap text-[12.5px] font-medium">{leg.label}</span>
-                        <span className="block overflow-hidden text-ellipsis whitespace-nowrap font-mono text-[10px] text-[#71717a]">
+                        <span className="block overflow-hidden text-ellipsis whitespace-nowrap font-mono text-[10px] text-ink-3">
                           {leg.matchup}{leg.book ? ` · ${leg.book.toUpperCase()}` : ''}
                         </span>
                       </div>
@@ -169,20 +171,20 @@ export default function HistoryPage() {
                     </div>
                   ))}
                 </div>
-                <div className="flex flex-wrap items-center gap-x-5 gap-y-1 border-t border-hairline px-4 py-2.5 font-mono text-[11px] text-[#71717a]">
-                  <span>{num(ticket.combined)} <span className="text-[#52525b]">/ {num(ticket.fairCombined)}</span></span>
+                <div className="flex flex-wrap items-center gap-x-5 gap-y-1 border-t border-hairline px-4 py-2.5 font-mono text-[11px] text-ink-3">
+                  <span>{num(ticket.combined)} <span className="text-ink-4">/ {num(ticket.fairCombined)}</span></span>
                   <span>{formatCurrency(ticket.stake, ticket.currency)}</span>
-                  <span style={{ color: ticket.ev >= 0 ? '#34d399' : '#f43f5e' }}>EV {(ticket.ev >= 0 ? '+' : '') + pct(ticket.ev, 1)}</span>
+                  <span style={{ color: ticket.ev >= 0 ? 'var(--ev)' : 'var(--danger)' }}>EV {(ticket.ev >= 0 ? '+' : '') + pct(ticket.ev, 1)}</span>
                   <span>
                     {t.history.clv}{' '}
                     {clv === null ? (
-                      <span className="text-[#52525b]">{t.history.noClv}</span>
+                      <span className="text-ink-4">{t.history.noClv}</span>
                     ) : (
-                      <span style={{ color: clv >= 0 ? '#34d399' : '#f43f5e' }}>{(clv >= 0 ? '+' : '') + pct(clv, 2)}</span>
+                      <span style={{ color: clv >= 0 ? 'var(--ev)' : 'var(--danger)' }}>{(clv >= 0 ? '+' : '') + pct(clv, 2)}</span>
                     )}
                   </span>
                   {profit !== null && (
-                    <span className="ml-auto font-semibold" style={{ color: profit > 0 ? '#34d399' : profit < 0 ? '#f43f5e' : '#a1a1aa' }}>
+                    <span className="ml-auto font-semibold" style={{ color: profit > 0 ? 'var(--ev)' : profit < 0 ? 'var(--danger)' : 'var(--text-2)' }}>
                       {profit >= 0 ? '+' : ''}{formatCurrency(profit, ticket.currency)}
                     </span>
                   )}
@@ -192,7 +194,7 @@ export default function HistoryPage() {
           })}
         </div>
 
-        <footer className="mt-14 border-t border-hairline pt-5 text-xs text-[#52525b]">{t.footer.legal}</footer>
+        <footer className="mt-14 border-t border-hairline pt-5 text-xs text-ink-4">{t.footer.legal}</footer>
       </main>
     </div>
   );

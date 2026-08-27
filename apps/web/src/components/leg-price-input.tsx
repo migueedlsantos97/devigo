@@ -47,8 +47,8 @@ export function LegPriceInput({
           setDraft(feedPrice.toFixed(2));
         }
       }}
-      className={`w-[62px] rounded-md border bg-transparent px-1.5 py-[3px] text-right font-mono text-[13.5px] font-semibold outline-none [appearance:textfield] focus:border-[#3f3f46] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none ${
-        manual ? 'border-risk-border text-risk' : 'border-transparent text-[#f4f4f5] hover:border-ctrl'
+      className={`w-[62px] rounded-md border bg-transparent px-1.5 py-[3px] text-right font-mono text-[13.5px] font-semibold outline-none [appearance:textfield] focus:border-ink-5 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none ${
+        manual ? 'border-risk-border text-risk' : 'border-transparent text-ink hover:border-ctrl'
       }`}
     />
   );

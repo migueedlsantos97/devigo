@@ -21,16 +21,16 @@ export function DayCard({
     <button
       type="button"
       onClick={onClick}
-      className="relative flex min-w-[84px] flex-none cursor-pointer flex-col items-start gap-[2px] rounded-xl border px-3.5 pb-[9px] pt-2.5 text-left transition-colors hover:border-[#3f3f46]"
-      style={{ background: active ? '#0d2a20' : '#101014', borderColor: active ? '#0f9d6e' : '#1c1c21' }}
+      className="relative flex min-w-[84px] flex-none cursor-pointer flex-col items-start gap-[2px] rounded-xl border px-3.5 pb-[9px] pt-2.5 text-left transition-colors hover:border-ink-5"
+      style={{ background: active ? 'var(--ev-soft)' : 'var(--raised)', borderColor: active ? 'var(--ev-active)' : 'var(--edge)' }}
     >
-      <span className="font-mono text-[10px] tracking-[.08em]" style={{ color: active ? '#6ee7b7' : '#71717a' }}>
+      <span className="font-mono text-[10px] tracking-[.08em]" style={{ color: active ? 'var(--ev-light)' : 'var(--text-3)' }}>
         {weekday}
       </span>
-      <span className="font-mono font-semibold leading-[1.35]" style={{ fontSize: numSize, color: active ? '#34d399' : '#f4f4f5' }}>
+      <span className="font-mono font-semibold leading-[1.35]" style={{ fontSize: numSize, color: active ? 'var(--ev)' : 'var(--text)' }}>
         {num}
       </span>
-      <span className="font-mono text-[10px]" style={{ color: active ? '#6ee7b7' : '#52525b' }}>
+      <span className="font-mono text-[10px]" style={{ color: active ? 'var(--ev-light)' : 'var(--text-4)' }}>
         {count}
       </span>
       {isToday && <span className="absolute right-2.5 top-2.5 h-[5px] w-[5px] rounded-full bg-ev" />}

@@ -22,7 +22,7 @@ export function AccountBox({ t }: { t: Dictionary }) {
         <button
           type="button"
           onClick={() => void auth.signOut()}
-          className="cursor-pointer border-none bg-transparent font-mono text-[10.5px] text-[#71717a] hover:text-[#f4f4f5]"
+          className="cursor-pointer border-none bg-transparent font-mono text-[10.5px] text-ink-3 hover:text-ink"
         >
           {t.account.signOut}
         </button>
@@ -51,7 +51,7 @@ export function AccountBox({ t }: { t: Dictionary }) {
   return (
     <div className="rounded-xl border border-edge bg-raised px-4 py-3.5">
       <div className="text-[13px] font-semibold">{t.account.signIn}</div>
-      <p className="m-0 mt-1 text-[12px] leading-[1.5] text-[#71717a]">{t.account.why}</p>
+      <p className="m-0 mt-1 text-[12px] leading-[1.5] text-ink-3">{t.account.why}</p>
       {step === 'email' ? (
         <div className="mt-3 flex flex-wrap gap-2">
           <input
@@ -60,7 +60,7 @@ export function AccountBox({ t }: { t: Dictionary }) {
             placeholder={t.account.emailPlaceholder}
             onChange={(e) => setEmail(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter') void sendCode(); }}
-            className="min-h-[38px] min-w-[220px] flex-1 rounded-[9px] border border-ctrl bg-transparent px-3 text-[13px] outline-none focus:border-[#3f3f46]"
+            className="min-h-[38px] min-w-[220px] flex-1 rounded-[9px] border border-ctrl bg-transparent px-3 text-[13px] outline-none focus:border-ink-5"
           />
           <button
             type="button"
@@ -73,7 +73,7 @@ export function AccountBox({ t }: { t: Dictionary }) {
         </div>
       ) : (
         <div className="mt-3">
-          <p className="m-0 mb-2 text-[12px] text-[#a1a1aa]">{t.account.codeSent(email.trim())}</p>
+          <p className="m-0 mb-2 text-[12px] text-ink-2">{t.account.codeSent(email.trim())}</p>
           <div className="flex flex-wrap gap-2">
             <input
               type="text"
@@ -82,7 +82,7 @@ export function AccountBox({ t }: { t: Dictionary }) {
               placeholder={t.account.codePlaceholder}
               onChange={(e) => setCode(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter') void verify(); }}
-              className="min-h-[38px] w-[160px] rounded-[9px] border border-ctrl bg-transparent px-3 font-mono text-[13px] outline-none focus:border-[#3f3f46]"
+              className="min-h-[38px] w-[160px] rounded-[9px] border border-ctrl bg-transparent px-3 font-mono text-[13px] outline-none focus:border-ink-5"
             />
             <button
               type="button"
@@ -95,7 +95,7 @@ export function AccountBox({ t }: { t: Dictionary }) {
             <button
               type="button"
               onClick={() => { setStep('email'); setCode(''); setFailed(false); }}
-              className="min-h-[38px] cursor-pointer rounded-[9px] border border-[#27272a] bg-transparent px-3 text-[12px] text-[#a1a1aa] hover:border-[#3f3f46]"
+              className="min-h-[38px] cursor-pointer rounded-[9px] border border-ctrl-hover bg-transparent px-3 text-[12px] text-ink-2 hover:border-ink-5"
             >
               {t.account.back}
             </button>

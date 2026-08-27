@@ -34,7 +34,7 @@ export function HelpModal({ t, open, onClose }: { t: Dictionary; open: boolean; 
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-5"
-      style={{ background: 'rgba(9,9,11,.7)', backdropFilter: 'blur(6px)' }}
+      style={{ background: 'var(--overlay)', backdropFilter: 'blur(6px)' }}
       role="dialog"
       aria-modal="true"
       aria-label={t.help.title}
@@ -51,7 +51,7 @@ export function HelpModal({ t, open, onClose }: { t: Dictionary; open: boolean; 
               <span className="pt-[2px] font-mono text-[11px] text-ev">{String(i + 1).padStart(2, '0')}</span>
               <span>
                 <span className="block text-[13.5px] font-semibold">{step.title}</span>
-                <span className="mt-1 block text-[12.5px] leading-[1.55] text-[#a1a1aa]">{step.body}</span>
+                <span className="mt-1 block text-[12.5px] leading-[1.55] text-ink-2">{step.body}</span>
               </span>
             </li>
           ))}

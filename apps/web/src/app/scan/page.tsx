@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { combinePrices } from '@devigo/core';
 import { formatOdds, formatPercent, getDictionary } from '@devigo/i18n';
 import { CurrencySelect } from '@/components/currency-select';
+import { ThemeToggle } from '@/components/theme-toggle';
 import { LangSwitch } from '@/components/lang-switch';
 import { Wordmark } from '@/components/logo';
 import { InfoTip } from '@/components/info-tip';
@@ -124,12 +125,13 @@ export default function ScanPage() {
   }, [legs, vig]);
 
   return (
-    <div className="min-h-screen bg-canvas text-[#f4f4f5]">
-      <header className="sticky top-0 z-20 flex h-[60px] items-center justify-between gap-6 border-b border-edge px-4 backdrop-blur-[12px] md:px-7" style={{ background: 'rgba(9,9,11,.88)' }}>
+    <div className="min-h-screen bg-canvas text-ink">
+      <header className="sticky top-0 z-20 flex h-[60px] items-center justify-between gap-6 border-b border-edge px-4 backdrop-blur-[12px] md:px-7" style={{ background: 'var(--header-bg)' }}>
         <Link href="/" className="shrink-0"><Wordmark compact /></Link>
         <div className="flex items-center gap-3.5">
           <LangSwitch locale={locale} onChange={setLocale} />
           <CurrencySelect value={currency} onChange={setCurrency} label={t.currencyLabel} />
+          <ThemeToggle label={t.themeLabel} />
           <Link href="/panel" className="inline-flex min-h-[36px] shrink-0 items-center whitespace-nowrap rounded-lg bg-ev px-[15px] py-2 text-[12.5px] font-semibold text-ev-on hover:bg-ev-light">
             {t.scan.toPanel}
           </Link>
@@ -138,7 +140,7 @@ export default function ScanPage() {
 
       <main className="mx-auto max-w-[720px] px-4 pb-16 pt-10 md:px-6">
         <h1 className="m-0 text-[30px] font-semibold leading-[1.1] tracking-[-.025em] md:text-[36px]">{t.scan.title}</h1>
-        <p className="mt-3 max-w-[56ch] text-[14.5px] leading-[1.6] text-[#a1a1aa]">{t.scan.subtitle}</p>
+        <p className="mt-3 max-w-[56ch] text-[14.5px] leading-[1.6] text-ink-2">{t.scan.subtitle}</p>
 
         {(phase.kind === 'idle' || phase.kind === 'error' || phase.kind === 'loading') && (
           <div className="mt-7">
@@ -152,17 +154,17 @@ export default function ScanPage() {
                 const file = e.dataTransfer.files.item(0);
                 if (file?.type.startsWith('image/')) void analyze(file);
               }}
-              className="flex min-h-[160px] w-full cursor-pointer flex-col items-center justify-center gap-2.5 rounded-2xl border border-dashed border-[#2c2c34] bg-raised p-8 text-center transition-colors hover:border-ev-border disabled:cursor-wait"
+              className="flex min-h-[160px] w-full cursor-pointer flex-col items-center justify-center gap-2.5 rounded-2xl border border-dashed border-ctrl-strong bg-raised p-8 text-center transition-colors hover:border-ev-border disabled:cursor-wait"
             >
               {phase.kind === 'loading' ? (
                 <>
                   <span className="dv-pulse h-2 w-2 rounded-full bg-ev" />
-                  <span className="font-mono text-[12.5px] text-[#a1a1aa]">{t.scan.analyzing}</span>
+                  <span className="font-mono text-[12.5px] text-ink-2">{t.scan.analyzing}</span>
                 </>
               ) : (
                 <>
                   <span className="text-[14.5px] font-semibold text-ev">{t.scan.upload}</span>
-                  <span className="max-w-[40ch] text-[12.5px] leading-[1.5] text-[#71717a]">{t.scan.dropHint}</span>
+                  <span className="max-w-[40ch] text-[12.5px] leading-[1.5] text-ink-3">{t.scan.dropHint}</span>
                 </>
               )}
             </button>
@@ -190,7 +192,7 @@ export default function ScanPage() {
             <section className="overflow-hidden rounded-[14px] border border-edge bg-raised">
               <div className="flex items-center justify-between border-b border-edge px-4 py-3">
                 <span className="text-sm font-semibold">{t.scan.extracted(legs.length)}</span>
-                <span className="font-mono text-[11px] text-[#71717a]">
+                <span className="font-mono text-[11px] text-ink-3">
                   {slipTotal !== null ? `slip ${num(slipTotal)} · ` : ''}engine {num(analysis.combined)}
                 </span>
               </div>
@@ -199,7 +201,7 @@ export default function ScanPage() {
                   <div key={i} className="flex items-center justify-between gap-3 border-b border-hairline px-4 py-2.5">
                     <div className="min-w-0">
                       <div className="overflow-hidden text-ellipsis whitespace-nowrap text-[12.5px] font-medium">{leg.selection}</div>
-                      <div className="overflow-hidden text-ellipsis whitespace-nowrap font-mono text-[10.5px] text-[#71717a]">
+                      <div className="overflow-hidden text-ellipsis whitespace-nowrap font-mono text-[10.5px] text-ink-3">
                         {leg.event}{leg.market ? ` · ${leg.market}` : ''}
                       </div>
                     </div>
@@ -216,13 +218,13 @@ export default function ScanPage() {
                             setLegs((prev) => prev.map((l, j) => (j === i ? { ...l, price: parsed } : l)));
                           }
                         }}
-                        className="w-[62px] rounded-md border border-transparent bg-transparent px-1.5 py-[3px] text-right font-mono text-[13px] font-semibold outline-none [appearance:textfield] hover:border-ctrl focus:border-[#3f3f46] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                        className="w-[62px] rounded-md border border-transparent bg-transparent px-1.5 py-[3px] text-right font-mono text-[13px] font-semibold outline-none [appearance:textfield] hover:border-ctrl focus:border-ink-5 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                       />
                       <button
                         type="button"
                         aria-label="remove"
                         onClick={() => setLegs((prev) => prev.filter((_, j) => j !== i))}
-                        className="h-[18px] w-[18px] cursor-pointer border-none bg-transparent text-sm leading-none text-[#52525b] hover:text-danger"
+                        className="h-[18px] w-[18px] cursor-pointer border-none bg-transparent text-sm leading-none text-ink-4 hover:text-danger"
                       >
                         ×
                       </button>
@@ -232,20 +234,20 @@ export default function ScanPage() {
               </div>
               <div className="flex flex-col gap-3 px-4 py-3.5">
                 <div className="flex items-center gap-2.5">
-                  <span className="w-[130px] text-[11.5px] text-[#71717a]">{t.scan.stake}</span>
+                  <span className="w-[130px] text-[11.5px] text-ink-3">{t.scan.stake}</span>
                   <input
                     type="number" min={1} step={10} value={stake}
                     onChange={(e) => setStake(Math.max(1, Number(e.target.value) || 1))}
-                    className="w-[100px] rounded-md border border-ctrl bg-transparent px-2 py-1 text-right font-mono text-[13px] font-semibold outline-none focus:border-[#3f3f46] [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                    className="w-[100px] rounded-md border border-ctrl bg-transparent px-2 py-1 text-right font-mono text-[13px] font-semibold outline-none focus:border-ink-5 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                   />
-                  <span className="font-mono text-xs text-[#71717a]">{currency}</span>
+                  <span className="font-mono text-xs text-ink-3">{currency}</span>
                 </div>
                 <div className="flex items-center gap-2.5">
-                  <span className="flex w-[130px] items-center gap-1 text-[11.5px] text-[#71717a]">{t.scan.vig} <InfoTip tip={t.scan.vigHelp} /></span>
+                  <span className="flex w-[130px] items-center gap-1 text-[11.5px] text-ink-3">{t.scan.vig} <InfoTip tip={t.scan.vigHelp} /></span>
                   <input
                     type="range" min={1} max={5} step={0.5} value={vig}
                     onChange={(e) => setVig(Number(e.target.value))}
-                    className="flex-1" style={{ accentColor: '#f59e0b' }}
+                    className="flex-1" style={{ accentColor: 'var(--risk)' }}
                   />
                   <span className="w-[52px] text-right font-mono text-[13px] font-semibold text-risk">{vig.toFixed(1)}%</span>
                 </div>
@@ -254,52 +256,52 @@ export default function ScanPage() {
 
             <section className="grid grid-cols-2 gap-2">
               <div className="rounded-xl border border-edge bg-raised px-4 py-3.5">
-                <div className="text-[10.5px] uppercase tracking-[.05em] text-[#71717a]">{t.scan.payout}</div>
+                <div className="text-[10.5px] uppercase tracking-[.05em] text-ink-3">{t.scan.payout}</div>
                 <div className="mt-1 font-mono text-[24px] font-semibold">{money(stake * analysis.combined)}</div>
-                <div className="mt-[2px] font-mono text-[11px] text-[#52525b]">{t.scan.paid} {num(analysis.combined)}</div>
+                <div className="mt-[2px] font-mono text-[11px] text-ink-4">{t.scan.paid} {num(analysis.combined)}</div>
               </div>
               <div className="rounded-xl border border-edge bg-raised px-4 py-3.5">
                 <div className="text-[10.5px] uppercase tracking-[.05em] text-model">{t.scan.fairPayout}</div>
                 <div className="mt-1 font-mono text-[24px] font-semibold text-model">
                   {money(stake * analysis.fairLo)}–{money(stake * analysis.fairHi)}
                 </div>
-                <div className="mt-[2px] font-mono text-[11px] text-[#52525b]">{t.scan.fairRange} {num(analysis.fairLo)}–{num(analysis.fairHi)}</div>
+                <div className="mt-[2px] font-mono text-[11px] text-ink-4">{t.scan.fairRange} {num(analysis.fairLo)}–{num(analysis.fairHi)}</div>
               </div>
             </section>
             <section className="grid grid-cols-2 gap-2 md:grid-cols-4">
               <div className="rounded-xl border border-edge bg-raised px-4 py-3.5">
-                <div className="text-[10.5px] uppercase tracking-[.05em] text-[#71717a]">{t.scan.probPaid}</div>
+                <div className="text-[10.5px] uppercase tracking-[.05em] text-ink-3">{t.scan.probPaid}</div>
                 <div className="mt-1 font-mono text-[22px] font-semibold">{pct(analysis.pPaid, 2)}</div>
               </div>
               <div className="rounded-xl border border-edge bg-raised px-4 py-3.5">
-                <div className="text-[10.5px] uppercase tracking-[.05em] text-[#71717a]">{t.scan.probReal}</div>
+                <div className="text-[10.5px] uppercase tracking-[.05em] text-ink-3">{t.scan.probReal}</div>
                 <div className="mt-1 font-mono text-[22px] font-semibold text-model">{pct(analysis.pReal, 2)}</div>
               </div>
-              <div className="rounded-xl border px-4 py-3.5" style={{ borderColor: analysis.ev < 0 ? '#7f1d3a' : '#0f5c43', background: analysis.ev < 0 ? '#2a1116' : '#082f24' }}>
-                <div className="text-[10.5px] uppercase tracking-[.05em]" style={{ color: analysis.ev < 0 ? '#fda4af' : '#6ee7b7' }}>{t.scan.evRange}</div>
-                <div className="mt-1 font-mono text-[22px] font-semibold" style={{ color: analysis.ev < 0 ? '#fda4af' : '#34d399' }}>
+              <div className="rounded-xl border px-4 py-3.5" style={{ borderColor: analysis.ev < 0 ? 'var(--danger-border)' : 'var(--ev-border)', background: analysis.ev < 0 ? 'var(--danger-bg)' : 'var(--ev-deep)' }}>
+                <div className="text-[10.5px] uppercase tracking-[.05em]" style={{ color: analysis.ev < 0 ? 'var(--danger-text)' : 'var(--ev-light)' }}>{t.scan.evRange}</div>
+                <div className="mt-1 font-mono text-[22px] font-semibold" style={{ color: analysis.ev < 0 ? 'var(--danger-text)' : 'var(--ev)' }}>
                   {pct(analysis.evLo, 0)}…{pct(analysis.evHi, 0)}
                 </div>
               </div>
-              <div className="rounded-xl border px-4 py-3.5" style={{ borderColor: analysis.ev < 0 ? '#7f1d3a' : '#0f5c43', background: analysis.ev < 0 ? '#2a1116' : '#082f24' }}>
-                <div className="text-[10.5px] uppercase tracking-[.05em]" style={{ color: analysis.ev < 0 ? '#fda4af' : '#6ee7b7' }}>{t.scan.houseTake}</div>
-                <div className="mt-1 font-mono text-[22px] font-semibold" style={{ color: analysis.ev < 0 ? '#fda4af' : '#34d399' }}>
+              <div className="rounded-xl border px-4 py-3.5" style={{ borderColor: analysis.ev < 0 ? 'var(--danger-border)' : 'var(--ev-border)', background: analysis.ev < 0 ? 'var(--danger-bg)' : 'var(--ev-deep)' }}>
+                <div className="text-[10.5px] uppercase tracking-[.05em]" style={{ color: analysis.ev < 0 ? 'var(--danger-text)' : 'var(--ev-light)' }}>{t.scan.houseTake}</div>
+                <div className="mt-1 font-mono text-[22px] font-semibold" style={{ color: analysis.ev < 0 ? 'var(--danger-text)' : 'var(--ev)' }}>
                   {analysis.ev < 0 ? money(-analysis.ev * stake) : money(0)}
                 </div>
               </div>
             </section>
 
-            <div className="rounded-[10px] border px-4 py-3 text-[12.5px] leading-[1.55]" style={{ borderColor: analysis.ev < 0 ? '#7f1d3a' : '#0f5c43', background: analysis.ev < 0 ? '#2a1116' : '#082f24', color: analysis.ev < 0 ? '#fda4af' : '#a7f3d0' }}>
+            <div className="rounded-[10px] border px-4 py-3 text-[12.5px] leading-[1.55]" style={{ borderColor: analysis.ev < 0 ? 'var(--danger-border)' : 'var(--ev-border)', background: analysis.ev < 0 ? 'var(--danger-bg)' : 'var(--ev-deep)', color: analysis.ev < 0 ? 'var(--danger-text)' : 'var(--ev-text)' }}>
               {analysis.ev < 0 ? t.scan.verdict(pct(-analysis.ev, 1), money(-analysis.ev * stake)) : t.scan.verdictPositive}
             </div>
 
-            <p className="m-0 text-[11.5px] leading-[1.5] text-[#52525b]">{t.scan.matchNote} {t.scan.disclaimer}</p>
+            <p className="m-0 text-[11.5px] leading-[1.5] text-ink-4">{t.scan.matchNote} {t.scan.disclaimer}</p>
 
             <div className="flex gap-2.5">
               <button
                 type="button"
                 onClick={() => { setPhase({ kind: 'idle' }); setLegs([]); setSlipTotal(null); }}
-                className="min-h-[42px] cursor-pointer rounded-[10px] border border-[#27272a] bg-transparent px-[18px] text-[13.5px] font-medium text-[#f4f4f5] hover:border-[#3f3f46]"
+                className="min-h-[42px] cursor-pointer rounded-[10px] border border-ctrl-hover bg-transparent px-[18px] text-[13.5px] font-medium text-ink hover:border-ink-5"
               >
                 {t.scan.again}
               </button>
@@ -310,7 +312,7 @@ export default function ScanPage() {
           </div>
         )}
 
-        <footer className="mt-14 border-t border-hairline pt-5 text-xs text-[#52525b]">{t.footer.legal}</footer>
+        <footer className="mt-14 border-t border-hairline pt-5 text-xs text-ink-4">{t.footer.legal}</footer>
       </main>
     </div>
   );

@@ -25,6 +25,7 @@ import {
 import { decimalToAmerican, type BuildMode } from '@devigo/core';
 import { formatOdds, formatPercent, getDictionary, LOCALE_META } from '@devigo/i18n';
 import { CurrencySelect } from '@/components/currency-select';
+import { ThemeToggle } from '@/components/theme-toggle';
 import { DayCard } from '@/components/day-card';
 import { HelpModal, useHelpModal } from '@/components/help-modal';
 import { InfoTip } from '@/components/info-tip';
@@ -40,7 +41,7 @@ import { useLocale } from '@/lib/locale';
 import { MIN_EDGE, sportLabel, STAKE_STEPS, STYLE_CONFIG } from '@/lib/markets';
 import { usePanel } from '@/lib/ticket-store';
 
-const survivalColor = (p: number): string => (p > 0.4 ? '#34d399' : p > 0.15 ? '#f59e0b' : '#f43f5e');
+const survivalColor = (p: number): string => (p > 0.4 ? 'var(--ev)' : p > 0.15 ? 'var(--risk)' : 'var(--danger)');
 
 const STYLE_ICON: Record<BuildMode, typeof Shield> = {
   conservative: Shield,
@@ -103,17 +104,17 @@ export default function PanelPage() {
             text:
               t.verdict.positive(pct(analysis.edge, 2)) +
               (risky ? t.verdict.heavy(pct(simulation.hitRate, 1)) : t.verdict.sized),
-            bg: '#082f24', border: '#0f5c43', color: '#a7f3d0',
+            bg: 'var(--ev-deep)', border: 'var(--ev-border)', color: 'var(--ev-text)',
             Icon: risky ? CircleAlert : Check,
           }
         : {
             text: t.verdict.negative(pct(-analysis.edge, 2)),
-            bg: '#2a1116', border: '#7f1d3a', color: '#fda4af', Icon: CircleX,
+            bg: 'var(--danger-bg)', border: 'var(--danger-border)', color: 'var(--danger-text)', Icon: CircleX,
           };
 
   const builderNote = (() => {
     if (panel.buildStatus === 'none') {
-      return { text: t.builder.noteNone, color: '#f59e0b', Icon: CircleAlert };
+      return { text: t.builder.noteNone, color: 'var(--risk)', Icon: CircleAlert };
     }
     if (panel.buildStatus === 'short' && analysis) {
       return {
@@ -122,7 +123,7 @@ export default function PanelPage() {
           money(panel.stake * analysis.combinedPrice),
           money(goalAmount > 0 ? goalAmount : 0),
         ),
-        color: '#f59e0b', Icon: CircleAlert,
+        color: 'var(--risk)', Icon: CircleAlert,
       };
     }
     if (panel.buildStatus === 'built' && analysis) {
@@ -132,17 +133,17 @@ export default function PanelPage() {
           money(panel.stake * analysis.combinedPrice),
           pct(analysis.jointProbability, 2),
         ),
-        color: '#a7f3d0', Icon: Check,
+        color: 'var(--ev-text)', Icon: Check,
       };
     }
-    return { text: t.builder.noteIdle, color: '#52525b', Icon: Info };
+    return { text: t.builder.noteIdle, color: 'var(--text-4)', Icon: Info };
   })();
 
   const kpis = [
-    { label: t.board.kpiScanned, value: intFmt.format(panel.scannedLines), color: '#f4f4f5', Icon: Database },
-    { label: t.board.kpiValueFound, value: String(panel.valueCount), color: '#34d399', Icon: Zap },
-    { label: t.board.kpiAvgMargin, value: panel.board.length ? pct(panel.avgMargin, 2) : '—', color: '#f4f4f5', Icon: BadgePercent },
-    { label: t.board.kpiModel, value: panel.methodShort, color: '#38bdf8', Icon: Shield },
+    { label: t.board.kpiScanned, value: intFmt.format(panel.scannedLines), color: 'var(--text)', Icon: Database },
+    { label: t.board.kpiValueFound, value: String(panel.valueCount), color: 'var(--ev)', Icon: Zap },
+    { label: t.board.kpiAvgMargin, value: panel.board.length ? pct(panel.avgMargin, 2) : '—', color: 'var(--text)', Icon: BadgePercent },
+    { label: t.board.kpiModel, value: t.methods[panel.method].short, color: 'var(--model)', Icon: Shield },
   ];
 
   const americanStr = (price: number): string => {
@@ -151,6 +152,7 @@ export default function PanelPage() {
   };
 
   const glossaryRows = [
+    { Icon: Merge, term: `${t.methodLabel} — ${t.methods[panel.method].name}:`, text: t.methods[panel.method].what },
     { Icon: Shield, term: t.glossary.fairTerm, text: t.glossary.fairText },
     { Icon: BadgePercent, term: t.glossary.marginTerm, text: t.glossary.marginText },
     { Icon: Zap, term: t.glossary.boltTerm, text: t.glossary.boltText },
@@ -164,45 +166,45 @@ export default function PanelPage() {
       : [
           {
             Icon: Merge, label: t.stats.combinedPrice, value: num(analysis.combinedPrice),
-            color: '#f4f4f5', sub: `${americanStr(analysis.combinedPrice)} · ${t.stats.payout(money(panel.stake * analysis.combinedPrice))}`,
+            color: 'var(--text)', sub: `${americanStr(analysis.combinedPrice)} · ${t.stats.payout(money(panel.stake * analysis.combinedPrice))}`,
           },
           {
             Icon: Shield, label: t.stats.fairPrice, value: pct(analysis.jointProbability, 1),
-            color: '#38bdf8', sub: `${num(1 / analysis.jointProbability)}`,
+            color: 'var(--model)', sub: `${num(1 / analysis.jointProbability)}`,
           },
           {
             Icon: TrendingUp, label: t.stats.expectedValue,
             value: (analysis.expectedValue >= 0 ? '+' : '') + money(analysis.expectedValue * panel.stake),
-            color: good ? '#34d399' : '#f43f5e', sub: t.stats.perUnit(money(panel.stake)),
+            color: good ? 'var(--ev)' : 'var(--danger)', sub: t.stats.perUnit(money(panel.stake)),
           },
           {
             Icon: Layers, label: `${t.stats.kelly} (${Math.round(STYLE_CONFIG[panel.style].kellyMultiplier * 100)}%)`,
             value: money(analysis.kellyFraction * panel.bankroll),
-            color: '#f4f4f5', sub: t.stats.ofBankroll(pct(analysis.kellyFraction, 2)),
+            color: 'var(--text)', sub: t.stats.ofBankroll(pct(analysis.kellyFraction, 2)),
           },
         ];
 
   return (
-    <div className="min-h-screen bg-canvas text-[#f4f4f5]">
-      <header className="sticky top-0 z-20 flex min-h-[60px] flex-wrap items-center justify-between gap-x-5 gap-y-2.5 border-b border-edge px-4 py-2 backdrop-blur-[12px] md:px-6" style={{ background: 'rgba(9,9,11,.9)' }}>
+    <div className="min-h-screen bg-canvas text-ink">
+      <header className="sticky top-0 z-20 flex min-h-[60px] flex-wrap items-center justify-between gap-x-5 gap-y-2.5 border-b border-edge px-4 py-2 backdrop-blur-[12px] md:px-6" style={{ background: 'var(--header-bg)' }}>
         <div className="flex min-w-0 items-center gap-[22px]">
           <Link href="/" className="shrink-0">
             <Wordmark compact />
           </Link>
           <nav className="hidden min-w-0 flex-wrap gap-1 text-[13px] md:flex">
-            <span className="flex items-center gap-[7px] whitespace-nowrap rounded-lg bg-[#18181b] px-[11px] py-1.5 font-medium text-[#f4f4f5]">
+            <span className="flex items-center gap-[7px] whitespace-nowrap rounded-lg bg-btn px-[11px] py-1.5 font-medium text-ink">
               <LayoutGrid size={14} strokeWidth={1.5} />
               {t.panelNav.builder}
             </span>
-            <Link href="/scan" className="flex items-center gap-[7px] whitespace-nowrap rounded-lg px-[11px] py-1.5 text-[#71717a] hover:text-[#d4d4d8]">
+            <Link href="/scan" className="flex items-center gap-[7px] whitespace-nowrap rounded-lg px-[11px] py-1.5 text-ink-3 hover:text-ink-bright">
               <Search size={14} strokeWidth={1.5} />
               {t.panelNav.scanner}
             </Link>
-            <Link href="/history" className="flex items-center gap-[7px] whitespace-nowrap rounded-lg px-[11px] py-1.5 text-[#71717a] hover:text-[#d4d4d8]">
+            <Link href="/history" className="flex items-center gap-[7px] whitespace-nowrap rounded-lg px-[11px] py-1.5 text-ink-3 hover:text-ink-bright">
               <FileText size={14} strokeWidth={1.5} />
               {t.panelNav.history}
             </Link>
-            <span className="flex items-center gap-[7px] whitespace-nowrap rounded-lg px-[11px] py-1.5 text-[#71717a]">
+            <span className="flex items-center gap-[7px] whitespace-nowrap rounded-lg px-[11px] py-1.5 text-ink-3">
               <Wallet size={14} strokeWidth={1.5} />
               {t.panelNav.bankroll}
             </span>
@@ -213,7 +215,7 @@ export default function PanelPage() {
             {panel.source === 'live' ? (
               <>
                 <span className="dv-pulse h-1.5 w-1.5 rounded-full bg-ev" />
-                <span className="text-[#a1a1aa]">{t.feedLive}</span>
+                <span className="text-ink-2">{t.feedLive}</span>
               </>
             ) : (
               <>
@@ -224,18 +226,19 @@ export default function PanelPage() {
           </div>
           <LangSwitch locale={locale} onChange={setLocale} />
           <CurrencySelect value={currency} onChange={setCurrency} label={t.currencyLabel} />
+          <ThemeToggle label={t.themeLabel} />
           <label className="hidden shrink-0 items-center gap-2 whitespace-nowrap rounded-lg border border-ctrl py-1 pl-[11px] pr-2.5 sm:flex">
-            <span className="text-xs text-[#71717a]">{t.bankrollLabel}</span>
+            <span className="text-xs text-ink-3">{t.bankrollLabel}</span>
             <input
               type="number"
               min={10}
               step={10}
               value={panel.bankroll}
               onChange={(e) => panel.setBankroll(Number(e.target.value))}
-              className="w-[74px] border-none bg-transparent py-[2px] text-right font-mono text-[13px] font-semibold text-[#f4f4f5] outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+              className="w-[74px] border-none bg-transparent py-[2px] text-right font-mono text-[13px] font-semibold text-ink outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
               aria-label={t.bankrollLabel}
             />
-            <span className="font-mono text-[11px] text-[#52525b]">{currency}</span>
+            <span className="font-mono text-[11px] text-ink-4">{currency}</span>
           </label>
         </div>
       </header>
@@ -266,11 +269,11 @@ export default function PanelPage() {
         <section className="flex flex-col gap-3.5 rounded-[14px] border border-edge bg-raised px-5 py-[18px]">
           <div className="flex flex-wrap items-baseline gap-2.5">
             <h1 className="m-0 text-[15px] font-semibold tracking-[-.01em]">{t.builder.title}</h1>
-            <span className="text-xs text-[#71717a]">{t.builder.subtitle}</span>
+            <span className="text-xs text-ink-3">{t.builder.subtitle}</span>
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            <span className="w-24 shrink-0 text-[12.5px] text-[#71717a]">{t.builder.styleLabel}</span>
+            <span className="w-24 shrink-0 text-[12.5px] text-ink-3">{t.builder.styleLabel}</span>
             <div className="flex flex-wrap gap-1.5">
               {(['conservative', 'balanced', 'fantasy'] as const).map((key) => {
                 const Icon = STYLE_ICON[key];
@@ -283,11 +286,11 @@ export default function PanelPage() {
                     type="button"
                     title={t.builder.styleHint[key]}
                     onClick={() => panel.setStyle(key)}
-                    className="flex min-h-[44px] cursor-pointer items-center gap-2 whitespace-nowrap rounded-full border px-3.5 py-2 text-[12.5px] font-semibold transition-colors hover:border-[#3f3f46]"
+                    className="flex min-h-[44px] cursor-pointer items-center gap-2 whitespace-nowrap rounded-full border px-3.5 py-2 text-[12.5px] font-semibold transition-colors hover:border-ink-5"
                     style={{
-                      background: on ? (warn ? '#2a1f0a' : '#0d2a20') : '#141419',
-                      borderColor: on ? (warn ? '#7a5410' : '#0f9d6e') : '#232329',
-                      color: on ? (warn ? '#f59e0b' : '#34d399') : '#a1a1aa',
+                      background: on ? (warn ? 'var(--risk-soft)' : 'var(--ev-soft)') : 'var(--card)',
+                      borderColor: on ? (warn ? 'var(--risk-strong)' : 'var(--ev-active)') : 'var(--ctrl)',
+                      color: on ? (warn ? 'var(--risk)' : 'var(--ev)') : 'var(--text-2)',
                     }}
                   >
                     <Icon size={13} strokeWidth={1.5} />
@@ -299,10 +302,10 @@ export default function PanelPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            <span className="w-24 shrink-0 text-[12.5px] text-[#71717a]">{t.ticket.goalLabel}</span>
+            <span className="w-24 shrink-0 text-[12.5px] text-ink-3">{t.ticket.goalLabel}</span>
             <div className="flex min-w-0 flex-1 gap-2 [flex-basis:320px]">
               <div className="flex min-w-0 flex-1 items-center gap-2 rounded-[9px] border border-ctrl bg-sunken px-3">
-                <span className="font-mono text-xs text-[#52525b]">{currency}</span>
+                <span className="font-mono text-xs text-ink-4">{currency}</span>
                 <input
                   type="number"
                   min={10}
@@ -311,7 +314,7 @@ export default function PanelPage() {
                   value={goalInput}
                   onChange={(e) => setGoalInput(e.target.value)}
                   onKeyDown={(e) => { if (e.key === 'Enter') panel.buildForGoal(goalAmount); }}
-                  className="min-h-[42px] min-w-0 flex-1 border-none bg-transparent py-[11px] font-mono text-[13.5px] text-[#f4f4f5] outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                  className="min-h-[42px] min-w-0 flex-1 border-none bg-transparent py-[11px] font-mono text-[13.5px] text-ink outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                 />
               </div>
               <button
@@ -336,8 +339,8 @@ export default function PanelPage() {
             {panel.dates.length > 0 && (
               <div className="flex flex-col gap-[9px]">
                 <div className="flex items-baseline gap-2.5">
-                  <span className="text-[12.5px] font-semibold text-[#d4d4d8]">{t.board.scheduleTitle}</span>
-                  <span className="text-[11.5px] text-[#52525b]">{t.board.scheduleSub}</span>
+                  <span className="text-[12.5px] font-semibold text-ink-bright">{t.board.scheduleTitle}</span>
+                  <span className="text-[11.5px] text-ink-4">{t.board.scheduleSub}</span>
                 </div>
                 <div className="scrollbar-none -mx-4 flex gap-2 overflow-x-auto px-4 md:mx-0 md:flex-wrap md:px-0">
                   <DayCard
@@ -372,9 +375,9 @@ export default function PanelPage() {
             <div className="flex flex-wrap overflow-hidden rounded-xl border border-edge bg-raised">
               {kpis.map((kpi) => (
                 <div key={kpi.label} className="flex flex-1 items-center gap-[11px] border-r border-edge px-4 py-[11px] [flex-basis:150px]">
-                  <kpi.Icon size={14} strokeWidth={1.5} className="shrink-0 text-[#3f3f46]" />
+                  <kpi.Icon size={14} strokeWidth={1.5} className="shrink-0 text-ink-5" />
                   <span className="min-w-0">
-                    <span className="block whitespace-nowrap text-[10.5px] uppercase tracking-[.05em] text-[#71717a]">{kpi.label}</span>
+                    <span className="block whitespace-nowrap text-[10.5px] uppercase tracking-[.05em] text-ink-3">{kpi.label}</span>
                     <span className="mt-[1px] block font-mono text-[17px] font-semibold" style={{ color: kpi.color }}>{kpi.value}</span>
                   </span>
                 </div>
@@ -385,14 +388,14 @@ export default function PanelPage() {
               <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2.5 px-[18px] pt-3.5">
                 <div className="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-2.5 gap-y-1 [flex-basis:220px]">
                   <h2 className="m-0 whitespace-nowrap text-sm font-semibold">{t.board.title}</h2>
-                  <span className="text-xs leading-[1.4] text-[#71717a]">{t.board.subtitle(t.methods[panel.method])}</span>
+                  <span className="text-xs leading-[1.4] text-ink-3">{t.board.subtitle(t.methods[panel.method].name)}</span>
                 </div>
                 <div className="flex shrink-0 gap-1.5">
                   <button
                     type="button"
                     onClick={() => setShowGlossary((v) => !v)}
-                    className="flex min-h-[40px] cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-[7px] border bg-[#18181b] px-2.5 py-1.5 font-mono text-[11px] hover:border-[#3f3f46] hover:text-[#f4f4f5]"
-                    style={{ color: showGlossary ? '#34d399' : '#a1a1aa', borderColor: showGlossary ? '#0f5c43' : '#27272a' }}
+                    className="flex min-h-[40px] cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-[7px] border bg-btn px-2.5 py-1.5 font-mono text-[11px] hover:border-ink-5 hover:text-ink"
+                    style={{ color: showGlossary ? 'var(--ev)' : 'var(--text-2)', borderColor: showGlossary ? 'var(--ev-border)' : 'var(--ctrl-hover)' }}
                   >
                     <Info size={13} strokeWidth={1.5} />
                     {t.glossary.toggle}
@@ -400,15 +403,15 @@ export default function PanelPage() {
                   <button
                     type="button"
                     onClick={panel.cycleMethod}
-                    className="flex min-h-[40px] cursor-pointer items-center gap-[7px] whitespace-nowrap rounded-[7px] border border-[#27272a] bg-[#18181b] px-2.5 py-1.5 font-mono text-[11px] text-[#a1a1aa] hover:border-[#3f3f46] hover:text-[#f4f4f5]"
+                    className="flex min-h-[40px] cursor-pointer items-center gap-[7px] whitespace-nowrap rounded-[7px] border border-ctrl-hover bg-btn px-2.5 py-1.5 font-mono text-[11px] text-ink-2 hover:border-ink-5 hover:text-ink"
                   >
                     <Merge size={13} strokeWidth={1.5} />
-                    {t.board.switchModel}
+                    {t.methods[panel.method].name.toUpperCase()}
                   </button>
                   <button
                     type="button"
                     onClick={help.show}
-                    className="flex min-h-[40px] min-w-[40px] cursor-pointer items-center justify-center rounded-[7px] border border-[#27272a] bg-transparent px-2.5 py-1.5 font-mono text-[11px] text-[#71717a] hover:border-[#3f3f46] hover:text-[#f4f4f5]"
+                    className="flex min-h-[40px] min-w-[40px] cursor-pointer items-center justify-center rounded-[7px] border border-ctrl-hover bg-transparent px-2.5 py-1.5 font-mono text-[11px] text-ink-3 hover:border-ink-5 hover:text-ink"
                     aria-label={t.help.open}
                   >
                     ?
@@ -418,7 +421,7 @@ export default function PanelPage() {
 
               {panel.leagues.length > 0 && (
                 <div className="mt-2.5 flex flex-wrap items-center gap-1.5 border-b border-edge bg-sunken px-[18px] py-2.5">
-                  <span className="mr-0.5 text-[11px] uppercase tracking-[.04em] text-[#52525b]">{t.board.compLabel}</span>
+                  <span className="mr-0.5 text-[11px] uppercase tracking-[.04em] text-ink-4">{t.board.compLabel}</span>
                   <LeagueChip
                     league={null}
                     label={t.board.allComps}
@@ -441,10 +444,10 @@ export default function PanelPage() {
               {showGlossary && (
                 <div className="flex flex-col gap-[9px] border-b border-edge bg-sunken px-[18px] py-3.5">
                   {glossaryRows.map((row) => (
-                    <div key={row.term} className="flex items-start gap-2.5 text-[#71717a]">
-                      <row.Icon size={13} strokeWidth={1.5} className="mt-[2px] shrink-0 text-[#3f3f46]" />
+                    <div key={row.term} className="flex items-start gap-2.5 text-ink-3">
+                      <row.Icon size={13} strokeWidth={1.5} className="mt-[2px] shrink-0 text-ink-5" />
                       <span className="text-xs leading-[1.45]">
-                        <span className="font-medium text-[#a1a1aa]">{row.term}</span> {row.text}
+                        <span className="font-medium text-ink-2">{row.term}</span> {row.text}
                       </span>
                     </div>
                   ))}
@@ -456,11 +459,11 @@ export default function PanelPage() {
                   <div key={market.id} className="flex flex-wrap items-center gap-x-[18px] gap-y-3.5 border-b border-hairline px-[18px] py-[13px]">
                     <div className="flex min-w-0 flex-1 flex-col [flex-basis:250px]">
                       <div className="flex items-center gap-2">
-                        <span className="whitespace-nowrap rounded border border-[#27272a] px-1.5 py-[2px] font-mono text-[10px] text-[#a1a1aa]">{market.league}</span>
-                        <span className="whitespace-nowrap font-mono text-[11px] text-[#52525b]">{market.time}</span>
+                        <span className="whitespace-nowrap rounded border border-ctrl-hover px-1.5 py-[2px] font-mono text-[10px] text-ink-2">{market.league}</span>
+                        <span className="whitespace-nowrap font-mono text-[11px] text-ink-4">{market.time}</span>
                       </div>
                       <div className="mt-1.5 text-[13px] font-medium leading-[1.35]">{market.matchup}</div>
-                      <div className="mt-[3px] text-[11px] leading-[1.4] text-[#71717a]">
+                      <div className="mt-[3px] text-[11px] leading-[1.4] text-ink-3">
                         {market.marketName} · {t.board.margin(pct(market.margin, 2))}
                         {market.bookCount > 1 ? ` · ${t.board.books(market.bookCount)}` : ''}
                       </div>
@@ -476,16 +479,16 @@ export default function PanelPage() {
                             <path
                               d={market.spark.d}
                               fill="none"
-                              stroke={market.spark.delta >= 0 ? '#34d399' : '#f43f5e'}
+                              stroke={market.spark.delta >= 0 ? 'var(--ev)' : 'var(--danger)'}
                               strokeWidth={1.5}
                               strokeLinejoin="round"
                               strokeLinecap="round"
                             />
                           </svg>
-                          <span className="whitespace-nowrap font-mono text-[10.5px] text-[#52525b]">{market.spark.label}</span>
+                          <span className="whitespace-nowrap font-mono text-[10.5px] text-ink-4">{market.spark.label}</span>
                           <span
                             className="whitespace-nowrap rounded-[5px] border px-[5px] py-[1px] font-mono text-[10px] font-semibold"
-                            style={{ color: market.spark.delta >= 0 ? '#34d399' : '#f43f5e', borderColor: market.spark.delta >= 0 ? '#34d399' : '#f43f5e' }}
+                            style={{ color: market.spark.delta >= 0 ? 'var(--ev)' : 'var(--danger)', borderColor: market.spark.delta >= 0 ? 'var(--ev)' : 'var(--danger)' }}
                           >
                             {(market.spark.delta >= 0 ? '+' : '−') + pct(Math.abs(market.spark.delta), 1)}
                           </span>
@@ -502,20 +505,20 @@ export default function PanelPage() {
                             key={runner.id}
                             type="button"
                             onClick={() => panel.toggle(runner.id)}
-                            className="flex min-h-[44px] cursor-pointer items-center justify-between gap-2.5 rounded-[10px] border px-3 py-2.5 text-left text-[#f4f4f5] transition-colors hover:border-[#3f3f46]"
-                            style={{ background: on ? '#082f24' : '#141419', borderColor: on ? '#0f9d6e' : value ? '#1f4237' : '#232329' }}
+                            className="flex min-h-[44px] cursor-pointer items-center justify-between gap-2.5 rounded-[10px] border px-3 py-2.5 text-left text-ink transition-colors hover:border-ink-5"
+                            style={{ background: on ? 'var(--ev-deep)' : 'var(--card)', borderColor: on ? 'var(--ev-active)' : value ? 'var(--ev-subtle)' : 'var(--ctrl)' }}
                           >
                             <span className="flex min-w-0 items-center gap-2.5">
                               {(on || value) && (
                                 on
                                   ? <Check size={14} strokeWidth={2} className="shrink-0 text-ev" />
-                                  : <Zap size={14} strokeWidth={1.5} className="shrink-0" style={{ color: '#1f8f6b' }} />
+                                  : <Zap size={14} strokeWidth={1.5} className="shrink-0" style={{ color: 'var(--ev-active)' }} />
                               )}
                               <span className="min-w-0">
                                 <span className="block overflow-hidden text-ellipsis whitespace-nowrap text-[12.5px] font-medium">{runner.label}</span>
                                 <span
                                   className="mt-[2px] block overflow-hidden text-ellipsis whitespace-nowrap font-mono text-[10.5px]"
-                                  style={{ color: value ? '#34d399' : runner.edge < -0.02 ? '#71717a' : '#a1a1aa' }}
+                                  style={{ color: value ? 'var(--ev)' : runner.edge < -0.02 ? 'var(--text-3)' : 'var(--text-2)' }}
                                 >
                                   {edgeStr}
                                   {runner.book ? ` · ${runner.book.toUpperCase()}` : ''}
@@ -527,14 +530,14 @@ export default function PanelPage() {
                               <span
                                 className="whitespace-nowrap rounded-full border px-2 py-[3px] font-mono text-[11px] font-semibold"
                                 style={{
-                                  color: on ? '#6ee7b7' : value ? '#34d399' : '#a1a1aa',
-                                  background: on ? '#0d3a2b' : 'transparent',
-                                  borderColor: on ? '#0f9d6e' : '#232329',
+                                  color: on ? 'var(--ev-light)' : value ? 'var(--ev)' : 'var(--text-2)',
+                                  background: on ? 'var(--ev-deep)' : 'transparent',
+                                  borderColor: on ? 'var(--ev-active)' : 'var(--ctrl)',
                                 }}
                               >
                                 {pct(runner.fairProbability, 1)}
                               </span>
-                              <span className="font-mono text-[15px] font-semibold" style={{ color: on ? '#34d399' : '#f4f4f5' }}>
+                              <span className="font-mono text-[15px] font-semibold" style={{ color: on ? 'var(--ev)' : 'var(--text)' }}>
                                 {num(runner.price)}
                               </span>
                             </span>
@@ -547,7 +550,7 @@ export default function PanelPage() {
               </div>
 
               {panel.board.length === 0 && (
-                <div className="px-5 py-[34px] text-center text-[12.5px] text-[#52525b]">{t.board.noMarkets}</div>
+                <div className="px-5 py-[34px] text-center text-[12.5px] text-ink-4">{t.board.noMarkets}</div>
               )}
             </section>
           </main>
@@ -556,7 +559,7 @@ export default function PanelPage() {
             <section className="rounded-[14px] border border-edge bg-raised">
               <div className="flex items-center justify-between border-b border-edge px-4 py-3.5">
                 <h2 className="m-0 flex items-center gap-2 text-sm font-semibold">
-                  <FileText size={14} strokeWidth={1.5} className="text-[#52525b]" />
+                  <FileText size={14} strokeWidth={1.5} className="text-ink-4" />
                   {t.ticket.title} · {panel.legs.length ? t.ticket.legs(panel.legs.length) : t.ticket.emptyLegs}
                 </h2>
                 <div className="flex items-center gap-3">
@@ -564,7 +567,7 @@ export default function PanelPage() {
                     <button
                       type="button"
                       onClick={saveTicket}
-                      className={`min-h-[36px] cursor-pointer border-none bg-transparent px-1 font-mono text-[10.5px] ${justSaved ? 'text-ev' : 'text-[#71717a] hover:text-ev'}`}
+                      className={`min-h-[36px] cursor-pointer border-none bg-transparent px-1 font-mono text-[10.5px] ${justSaved ? 'text-ev' : 'text-ink-3 hover:text-ev'}`}
                     >
                       {justSaved ? t.history.saved : t.history.save}
                     </button>
@@ -572,7 +575,7 @@ export default function PanelPage() {
                   <button
                     type="button"
                     onClick={panel.clear}
-                    className="flex min-h-[36px] cursor-pointer items-center gap-1.5 border-none bg-transparent px-1 font-mono text-[10.5px] text-[#71717a] hover:text-danger"
+                    className="flex min-h-[36px] cursor-pointer items-center gap-1.5 border-none bg-transparent px-1 font-mono text-[10.5px] text-ink-3 hover:text-danger"
                   >
                     <Trash2 size={12} strokeWidth={1.5} />
                     {t.ticket.clear}
@@ -582,11 +585,11 @@ export default function PanelPage() {
 
               {panel.legs.length === 0 && (
                 <div className="px-5 pb-[22px] pt-[26px] text-center">
-                  <div className="flex justify-center text-[#2c2c34]">
+                  <div className="flex justify-center text-[var(--ctrl-strong)]">
                     <Layers size={28} strokeWidth={1.5} />
                   </div>
-                  <div className="mt-3.5 text-sm font-semibold text-[#d4d4d8]">{t.ticket.emptyTitle}</div>
-                  <div className="mt-1.5 text-[12.5px] leading-[1.6] text-[#71717a]">{t.ticket.empty}</div>
+                  <div className="mt-3.5 text-sm font-semibold text-ink-bright">{t.ticket.emptyTitle}</div>
+                  <div className="mt-1.5 text-[12.5px] leading-[1.6] text-ink-3">{t.ticket.empty}</div>
                 </div>
               )}
 
@@ -598,7 +601,7 @@ export default function PanelPage() {
                       <div className="flex items-start justify-between gap-2.5">
                         <div className="min-w-0">
                           <div className="text-[12.5px] font-medium leading-[1.3]">{leg.label}</div>
-                          <div className="mt-[3px] font-mono text-[10.5px] text-[#71717a]">
+                          <div className="mt-[3px] font-mono text-[10.5px] text-ink-3">
                             {leg.matchup} · {t.board.detail(num(1 / leg.fairProbability), pct(leg.fairProbability, 1))}
                             {leg.book ? ` · ${leg.book.toUpperCase()}` : ''}
                             {leg.commission > 0 ? ` (−${Math.round(leg.commission * 100)}%)` : ''}
@@ -619,7 +622,7 @@ export default function PanelPage() {
                           <button
                             type="button"
                             onClick={() => panel.remove(leg.id)}
-                            className="flex cursor-pointer items-center border-none bg-transparent p-0 text-[#52525b] hover:text-danger"
+                            className="flex cursor-pointer items-center border-none bg-transparent p-0 text-ink-4 hover:text-danger"
                             aria-label="remove"
                           >
                             <X size={14} strokeWidth={1.5} />
@@ -633,7 +636,7 @@ export default function PanelPage() {
                             style={{ width: `${(alive * 100).toFixed(1)}%`, background: survivalColor(alive) }}
                           />
                         </div>
-                        <span className="w-14 text-right font-mono text-[10px] text-[#71717a]">{pct(alive, 1)}</span>
+                        <span className="w-14 text-right font-mono text-[10px] text-ink-3">{pct(alive, 1)}</span>
                       </div>
                     </div>
                   );
@@ -644,8 +647,8 @@ export default function PanelPage() {
                 <>
                   <div className="flex flex-col gap-2 border-b border-hairline px-4 py-3.5">
                     <div className="flex items-center justify-between gap-2.5">
-                      <span className="flex items-center gap-[7px] text-[12.5px] font-medium text-[#d4d4d8]">
-                        <Wallet size={13} strokeWidth={1.5} className="text-[#52525b]" />
+                      <span className="flex items-center gap-[7px] text-[12.5px] font-medium text-ink-bright">
+                        <Wallet size={13} strokeWidth={1.5} className="text-ink-4" />
                         <span className="whitespace-nowrap">{t.builder.stakeQuestion}</span>
                       </span>
                       <span className="whitespace-nowrap font-mono text-sm font-semibold">{money(panel.stake)}</span>
@@ -658,11 +661,11 @@ export default function PanelPage() {
                             key={v}
                             type="button"
                             onClick={() => panel.setStake(v)}
-                            className="flex-auto cursor-pointer rounded-lg border px-1 py-[7px] font-mono text-xs font-semibold transition-colors hover:border-[#3f3f46]"
+                            className="flex-auto cursor-pointer rounded-lg border px-1 py-[7px] font-mono text-xs font-semibold transition-colors hover:border-ink-5"
                             style={{
-                              background: on ? '#082f24' : '#141419',
-                              borderColor: on ? '#0f9d6e' : '#232329',
-                              color: on ? '#34d399' : '#a1a1aa',
+                              background: on ? 'var(--ev-deep)' : 'var(--card)',
+                              borderColor: on ? 'var(--ev-active)' : 'var(--ctrl)',
+                              color: on ? 'var(--ev)' : 'var(--text-2)',
                             }}
                           >
                             {money(v)}
@@ -670,12 +673,12 @@ export default function PanelPage() {
                         );
                       })}
                     </div>
-                    <div className="flex items-center gap-[7px] text-[11.5px] text-[#71717a]">
+                    <div className="flex items-center gap-[7px] text-[11.5px] text-ink-3">
                       <TrendingUp size={12} strokeWidth={1.5} className="shrink-0 text-ev" />
                       <span>{t.builder.payout(money(panel.stake * analysis.combinedPrice), pct(analysis.jointProbability, 1))}</span>
                     </div>
                   </div>
-                  <div className="flex gap-2.5 px-4 py-3" style={{ color: panel.sharedMatchup !== null ? '#f59e0b' : '#52525b' }}>
+                  <div className="flex gap-2.5 px-4 py-3" style={{ color: panel.sharedMatchup !== null ? 'var(--risk)' : 'var(--text-4)' }}>
                     <Link2 size={13} strokeWidth={1.5} className="mt-[2px] shrink-0" />
                     <span className="text-[11.5px] leading-[1.5]">
                       {panel.sharedMatchup !== null
@@ -698,27 +701,27 @@ export default function PanelPage() {
                     <div
                       key={cell.label}
                       className="border-b border-edge px-4 py-3.5"
-                      style={{ borderRight: i % 2 === 0 ? '1px solid #1c1c21' : 'none' }}
+                      style={{ borderRight: i % 2 === 0 ? '1px solid var(--edge)' : 'none' }}
                     >
-                      <div className="flex items-center gap-[7px] text-[#71717a]">
+                      <div className="flex items-center gap-[7px] text-ink-3">
                         <cell.Icon size={12} strokeWidth={1.5} />
                         <span className="text-[10.5px] uppercase tracking-[.05em]">{cell.label}</span>
                       </div>
                       <div className="mt-1 font-mono text-2xl font-semibold" style={{ color: cell.color }}>{cell.value}</div>
-                      <div className="mt-[2px] font-mono text-[11px] text-[#52525b]">{cell.sub}</div>
+                      <div className="mt-[2px] font-mono text-[11px] text-ink-4">{cell.sub}</div>
                     </div>
                   ))}
                 </div>
 
                 <div className="px-4 py-3.5">
                   <div className="flex items-center justify-between gap-2.5">
-                    <span className="flex items-center gap-[7px] text-[11px] uppercase tracking-[.05em] text-[#71717a]">
+                    <span className="flex items-center gap-[7px] text-[11px] uppercase tracking-[.05em] text-ink-3">
                       <TrendingUp size={12} strokeWidth={1.5} />
                       {t.sim.title}
                     </span>
-                    <span className="whitespace-nowrap font-mono text-[11px] text-[#a1a1aa]">{t.sim.hit(pct(simulation.hitRate, 2))}</span>
+                    <span className="whitespace-nowrap font-mono text-[11px] text-ink-2">{t.sim.hit(pct(simulation.hitRate, 2))}</span>
                   </div>
-                  <div className="mt-3 flex h-2.5 overflow-hidden rounded-[5px] bg-[#27272a]">
+                  <div className="mt-3 flex h-2.5 overflow-hidden rounded-[5px] bg-ctrl-hover">
                     <div
                       className="min-w-[2px] bg-ev transition-[width] duration-[350ms]"
                       style={{ width: `${(simulation.hitRate * 100).toFixed(1)}%` }}
@@ -726,7 +729,7 @@ export default function PanelPage() {
                   </div>
                   <div className="mt-3 flex flex-col gap-[7px]">
                     <div className="flex items-center justify-between gap-2.5">
-                      <span className="flex items-center gap-2 text-xs text-[#a1a1aa]">
+                      <span className="flex items-center gap-2 text-xs text-ink-2">
                         <span className="h-2 w-2 shrink-0 rounded-[2px] bg-ev" />
                         {t.stats.cash(pct(simulation.hitRate, 2))}
                       </span>
@@ -735,34 +738,34 @@ export default function PanelPage() {
                       </span>
                     </div>
                     <div className="flex items-center justify-between gap-2.5">
-                      <span className="flex items-center gap-2 text-xs text-[#a1a1aa]">
-                        <span className="h-2 w-2 shrink-0 rounded-[2px] bg-[#52525b]" />
+                      <span className="flex items-center gap-2 text-xs text-ink-2">
+                        <span className="h-2 w-2 shrink-0 rounded-[2px] bg-[var(--text-4)]" />
                         {t.stats.lose(pct(1 - simulation.hitRate, 2))}
                       </span>
-                      <span className="whitespace-nowrap font-mono text-[13px] font-semibold text-[#52525b]">−{money(panel.stake)}</span>
+                      <span className="whitespace-nowrap font-mono text-[13px] font-semibold text-ink-4">−{money(panel.stake)}</span>
                     </div>
                   </div>
                   <div className="mt-3 flex flex-col gap-1.5 border-t border-edge pt-[11px]">
                     <div className="flex items-baseline justify-between gap-2.5">
-                      <span className="min-w-0 flex-1 text-[11.5px] leading-[1.4] text-[#71717a]">{t.stats.oneIn}</span>
-                      <span className="whitespace-nowrap font-mono text-[11.5px] text-[#a1a1aa]">
+                      <span className="min-w-0 flex-1 text-[11.5px] leading-[1.4] text-ink-3">{t.stats.oneIn}</span>
+                      <span className="whitespace-nowrap font-mono text-[11.5px] text-ink-2">
                         {t.stats.oneInValue(Math.round(1 / Math.max(simulation.hitRate, 1e-6)), pct(simulation.hitRate, 2))}
                       </span>
                     </div>
                     <div className="flex items-baseline justify-between gap-2.5">
-                      <span className="min-w-0 flex-1 text-[11.5px] leading-[1.4] text-[#71717a]">{t.stats.breakeven}</span>
+                      <span className="min-w-0 flex-1 text-[11.5px] leading-[1.4] text-ink-3">{t.stats.breakeven}</span>
                       <span
                         className="whitespace-nowrap font-mono text-[11.5px]"
-                        style={{ color: simulation.hitRate >= 1 / analysis.combinedPrice ? '#34d399' : '#f59e0b' }}
+                        style={{ color: simulation.hitRate >= 1 / analysis.combinedPrice ? 'var(--ev)' : 'var(--risk)' }}
                       >
                         {pct(1 / analysis.combinedPrice, 2)}
                       </span>
                     </div>
                     <div className="flex items-baseline justify-between gap-2.5">
-                      <span className="min-w-0 flex-1 text-[11.5px] leading-[1.4] text-[#71717a]">{t.stats.per100}</span>
+                      <span className="min-w-0 flex-1 text-[11.5px] leading-[1.4] text-ink-3">{t.stats.per100}</span>
                       <span
                         className="whitespace-nowrap font-mono text-[11.5px]"
-                        style={{ color: analysis.expectedValue >= 0 ? '#34d399' : '#f43f5e' }}
+                        style={{ color: analysis.expectedValue >= 0 ? 'var(--ev)' : 'var(--danger)' }}
                       >
                         {(analysis.expectedValue >= 0 ? '+' : '') + money(analysis.expectedValue * panel.stake * 100)}
                       </span>

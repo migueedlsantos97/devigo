@@ -137,7 +137,6 @@ export interface PanelState {
   readonly dateFilter: string | null;
   readonly setDateFilter: (date: string | null) => void;
   readonly method: VigMethod;
-  readonly methodShort: string;
   readonly cycleMethod: () => void;
   readonly style: BuildMode;
   readonly setStyle: (mode: BuildMode) => void;
@@ -231,7 +230,7 @@ export const usePanel = (locale: Locale): PanelState => {
     };
   }, []);
 
-  const method = METHODS[methodIndex % METHODS.length] ?? { key: 'shin' as VigMethod, short: 'SHIN' };
+  const method: VigMethod = METHODS[methodIndex % METHODS.length] ?? 'shin';
 
   const rawBoard = useMemo<ReadonlyArray<BoardMarket>>(() => {
     const timeFmt = new Intl.DateTimeFormat(LOCALE_META[locale].bcp47, {
@@ -252,7 +251,7 @@ export const usePanel = (locale: Locale): PanelState => {
 
       if (mk.priceSets.length > 0) {
         // Multi-book market: consensus fair line + line-shopped best price.
-        const fair = consensusProbabilities(mk.priceSets, method.key);
+        const fair = consensusProbabilities(mk.priceSets, method);
         const margin =
           mk.priceSets.reduce((sum, set) => sum + bookMargin(set), 0) / mk.priceSets.length;
         return {
@@ -278,7 +277,7 @@ export const usePanel = (locale: Locale): PanelState => {
 
       const fair = devig(
         mk.runners.map((r) => ({ id: r.id, label: r.label[locale], price: r.price })),
-        method.key,
+        method,
       );
       return {
         ...base,
@@ -308,7 +307,7 @@ export const usePanel = (locale: Locale): PanelState => {
       const line = sparklineFor(store, favourite.id);
       return { ...mk, spark: line === null ? null : { ...line, label: favourite.label } };
     });
-  }, [markets, locale, method.key]);
+  }, [markets, locale, method]);
 
   // Legs already on the ticket must keep resolving even after the board filters
   // change, so lookups for the ticket itself always go through the FULL board.
@@ -420,8 +419,7 @@ export const usePanel = (locale: Locale): PanelState => {
     dates,
     dateFilter,
     setDateFilter,
-    method: method.key,
-    methodShort: method.short,
+    method,
     cycleMethod: () => setMethodIndex((i) => (i + 1) % METHODS.length),
     style,
     setStyle: (mode) => setStyle(mode),

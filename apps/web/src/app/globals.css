@@ -2,15 +2,123 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
+/* ---------------------------------------------------------------------------
+   Theme tokens. The product is dark-first (the design handoff's palette), so
+   :root carries the dark values and [data-theme="light"] overrides them.
+   Surfaces and text invert; the semantic accents (emerald = +EV, amber = risk,
+   red = -EV, blue = model) keep their meaning in both themes but darken in
+   light mode, because #34d399 on white fails contrast.
+--------------------------------------------------------------------------- */
+:root,
+:root[data-theme='dark'] {
   color-scheme: dark;
+
+  --canvas: #09090b;
+  --band: #0b0b0e;
+  --sunken: #0c0c10;
+  --raised: #101014;
+  --card: #141419;
+  --btn: #18181b;
+  --hairline: #17171b;
+  --edge: #1c1c21;
+  --ctrl: #232329;
+  --ctrl-hover: #27272a;
+  --ctrl-strong: #2c2c34;
+  --edge-soft: #1f1f25;
+
+  --text: #f4f4f5;
+  --text-bright: #d4d4d8;
+  --text-2: #a1a1aa;
+  --text-3: #71717a;
+  --text-4: #52525b;
+  --text-5: #3f3f46;
+
+  --ev: #34d399;
+  --ev-light: #6ee7b7;
+  --ev-deep: #082f24;
+  --ev-brand: #0d1f19;
+  --ev-border: #0f5c43;
+  --ev-active: #0f9d6e;
+  --ev-subtle: #1f4237;
+  --ev-on: #052e21;
+  --ev-soft: #0d2a20;
+  --ev-text: #a7f3d0;
+
+  --risk: #f59e0b;
+  --risk-border: #4a3410;
+  --risk-soft: #2a1f0a;
+  --risk-strong: #7a5410;
+
+  --danger: #f43f5e;
+  --danger-bg: #2a1116;
+  --danger-border: #7f1d3a;
+  --danger-text: #fda4af;
+
+  --model: #38bdf8;
+  --sport-nfl: #a78bfa;
+  --sport-mlb: #a3e635;
+
+  --header-bg: rgba(9, 9, 11, 0.9);
+  --overlay: rgba(9, 9, 11, 0.7);
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+
+  --canvas: #fbfbfc;
+  --band: #f4f4f5;
+  --sunken: #f4f4f5;
+  --raised: #ffffff;
+  --card: #f7f7f8;
+  --btn: #f1f1f3;
+  --hairline: #e8e8ea;
+  --edge: #e0e0e4;
+  --ctrl: #d6d6db;
+  --ctrl-hover: #c4c4cb;
+  --ctrl-strong: #b4b4bd;
+  --edge-soft: #e4e4e8;
+
+  --text: #18181b;
+  --text-bright: #27272a;
+  --text-2: #52525b;
+  --text-3: #71717a;
+  --text-4: #6b6b74;
+  --text-5: #a1a1aa;
+
+  --ev: #047857;
+  --ev-light: #059669;
+  --ev-deep: #ecfdf5;
+  --ev-brand: #f0fdf9;
+  --ev-border: #6ee7b7;
+  --ev-active: #059669;
+  --ev-subtle: #a7f3d0;
+  --ev-on: #ffffff;
+  --ev-soft: #ecfdf5;
+  --ev-text: #065f46;
+
+  --risk: #b45309;
+  --risk-border: #fcd34d;
+  --risk-soft: #fffbeb;
+  --risk-strong: #d97706;
+
+  --danger: #be123c;
+  --danger-bg: #fff1f2;
+  --danger-border: #fda4af;
+  --danger-text: #9f1239;
+
+  --model: #0369a1;
+  --sport-nfl: #6d28d9;
+  --sport-mlb: #4d7c0f;
+
+  --header-bg: rgba(251, 251, 252, 0.9);
+  --overlay: rgba(24, 24, 27, 0.45);
 }
 
 html,
 body {
   margin: 0;
   padding: 0;
-  background: #09090b;
+  background: var(--canvas);
 }
 
 * {
@@ -22,7 +130,7 @@ body {
   height: 8px;
 }
 ::-webkit-scrollbar-thumb {
-  background: #27272a;
+  background: var(--ctrl-hover);
   border-radius: 8px;
 }
 

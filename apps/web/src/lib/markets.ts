@@ -90,11 +90,8 @@ export const DEMO_MARKETS: ReadonlyArray<NormalizedMarket> = [
   },
 ];
 
-export const METHODS: ReadonlyArray<{ key: VigMethod; short: string }> = [
-  { key: 'shin', short: 'SHIN' },
-  { key: 'multiplicative', short: 'MULT' },
-  { key: 'additive', short: 'ADD' },
-];
+/** Cycle order for the de-vig model; the user-facing names live in @devigo/i18n. */
+export const METHODS: ReadonlyArray<VigMethod> = ['shin', 'multiplicative', 'additive'];
 
 /** Sport a league/competition belongs to, for the sport-tab hierarchy above the board. */
 export const SPORT_OF_LEAGUE: Record<string, { key: string; label: Record<Locale, string> }> = {

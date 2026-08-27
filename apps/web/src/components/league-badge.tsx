@@ -5,27 +5,27 @@
  * plus the league code, colored per sport.
  */
 const LEAGUE_META: Record<string, { glyph: string; color: string }> = {
-  EPL: { glyph: '⚽', color: '#38bdf8' },
-  LALIGA: { glyph: '⚽', color: '#f59e0b' },
-  NBA: { glyph: '🏀', color: '#f43f5e' },
-  NFL: { glyph: '🏈', color: '#a78bfa' },
-  MLB: { glyph: '⚾', color: '#34d399' },
-  ATP: { glyph: '🎾', color: '#a3e635' },
+  EPL: { glyph: '⚽', color: 'var(--model)' },
+  LALIGA: { glyph: '⚽', color: 'var(--risk)' },
+  NBA: { glyph: '🏀', color: 'var(--danger)' },
+  NFL: { glyph: '🏈', color: 'var(--sport-nfl)' },
+  MLB: { glyph: '⚾', color: 'var(--ev)' },
+  ATP: { glyph: '🎾', color: 'var(--sport-mlb)' },
 };
 
 const SPORT_META: Record<string, { glyph: string; color: string }> = {
-  futbol: { glyph: '⚽', color: '#38bdf8' },
-  basket: { glyph: '🏀', color: '#f43f5e' },
-  nfl: { glyph: '🏈', color: '#a78bfa' },
-  beisbol: { glyph: '⚾', color: '#34d399' },
-  tenis: { glyph: '🎾', color: '#a3e635' },
+  futbol: { glyph: '⚽', color: 'var(--model)' },
+  basket: { glyph: '🏀', color: 'var(--danger)' },
+  nfl: { glyph: '🏈', color: 'var(--sport-nfl)' },
+  beisbol: { glyph: '⚾', color: 'var(--ev)' },
+  tenis: { glyph: '🎾', color: 'var(--sport-mlb)' },
 };
 
 export const leagueMeta = (league: string): { glyph: string; color: string } =>
-  LEAGUE_META[league] ?? { glyph: '🏟️', color: '#a1a1aa' };
+  LEAGUE_META[league] ?? { glyph: '🏟️', color: 'var(--text-2)' };
 
 export const sportMeta = (sport: string): { glyph: string; color: string } =>
-  SPORT_META[sport] ?? { glyph: '🏟️', color: '#a1a1aa' };
+  SPORT_META[sport] ?? { glyph: '🏟️', color: 'var(--text-2)' };
 
 export function LeagueChip({
   league,
@@ -48,7 +48,7 @@ export function LeagueChip({
       className={`flex min-h-[40px] shrink-0 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-full border px-3 py-1.5 font-mono text-[11px] font-semibold transition-colors ${
         active
           ? 'border-ev-active bg-ev-deep text-ev'
-          : 'border-ctrl bg-card text-[#a1a1aa] hover:border-[#3f3f46] hover:text-[#f4f4f5]'
+          : 'border-ctrl bg-card text-ink-2 hover:border-ink-5 hover:text-ink'
       }`}
     >
       {meta && <span aria-hidden="true" className="text-[13px] leading-none">{meta.glyph}</span>}
@@ -56,7 +56,7 @@ export function LeagueChip({
         <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full" style={{ background: meta.color }} />
       )}
       {league ?? label}
-      <span className={active ? 'text-ev-light' : 'text-[#52525b]'}>{count}</span>
+      <span className={active ? 'text-ev-light' : 'text-ink-4'}>{count}</span>
     </button>
   );
 }

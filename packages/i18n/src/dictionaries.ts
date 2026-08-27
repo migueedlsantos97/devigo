@@ -85,7 +85,9 @@ export interface Dictionary {
     sparkAria: (label: string) => string;
   };
   readonly currencyLabel: string;
-  readonly methods: { shin: string; multiplicative: string; additive: string };
+  readonly themeLabel: string;
+  readonly methods: Record<'shin' | 'multiplicative' | 'additive', { name: string; short: string; what: string }>;
+  readonly methodLabel: string;
   readonly verdict: {
     positive: (edge: string) => string; heavy: (hit: string) => string; sized: string;
     negative: (hold: string) => string; idle: string;
@@ -323,7 +325,25 @@ const es: Dictionary = {
     sparkAria: (label) => 'Cómo se movió la probabilidad de ' + label + ' desde que lo seguís',
   },
   currencyLabel: 'Moneda',
-  methods: { shin: 'el método de Shin', multiplicative: 'reparto proporcional', additive: 'reparto aditivo' },
+  themeLabel: 'Cambiar entre modo claro y oscuro',
+  methods: {
+    shin: {
+      name: 'Preciso',
+      short: 'PRECISO',
+      what: 'El más fiable: sabe que las casas inflan de más a los no favoritos y lo corrige. Conviene dejarlo puesto.',
+    },
+    multiplicative: {
+      name: 'Proporcional',
+      short: 'PROPORC.',
+      what: 'Reparte la comisión en proporción, así el favorito carga con más parte que el no favorito. Es el estándar de la industria.',
+    },
+    additive: {
+      name: 'Parejo',
+      short: 'PAREJO',
+      what: 'Le quita la misma comisión a cada opción por igual. El más simple; sirve para comparar contra los otros dos.',
+    },
+  },
+  methodLabel: 'Cómo calculamos la probabilidad justa',
   verdict: {
     positive: (edgeStr) => 'Expectativa positiva: ' + edgeStr + ' de ventaja sobre la línea justa.',
     heavy: (hit) => ' La varianza es alta: solo ' + hit + ' de los boletos simulados cobran. No superes el importe de Kelly.',
@@ -577,7 +597,25 @@ const en: Dictionary = {
     sparkAria: (label) => 'How ' + label + "'s probability has moved since you started tracking it",
   },
   currencyLabel: 'Currency',
-  methods: { shin: "Shin's method", multiplicative: 'proportional de-vig', additive: 'additive de-vig' },
+  themeLabel: 'Switch between light and dark mode',
+  methods: {
+    shin: {
+      name: 'Precise',
+      short: 'PRECISE',
+      what: 'The most reliable one: it knows books over-inflate longshots and corrects for it. Best left switched on.',
+    },
+    multiplicative: {
+      name: 'Proportional',
+      short: 'PROPORT.',
+      what: 'Splits the commission in proportion, so the favourite carries more of it than the longshot. The industry standard.',
+    },
+    additive: {
+      name: 'Even',
+      short: 'EVEN',
+      what: 'Takes the same slice of commission off every option. The simplest one; useful to compare against the other two.',
+    },
+  },
+  methodLabel: 'How we work out the fair probability',
   verdict: {
     positive: (edgeStr) => 'Positive expectation: ' + edgeStr + ' edge over the fair line.',
     heavy: (hit) => ' Variance is heavy: only ' + hit + ' of simulated tickets cash. Stake at or below the Kelly figure.',

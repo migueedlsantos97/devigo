@@ -22,7 +22,7 @@ export function Monogram({ size = 28 }: { size?: number }) {
 
 export function Wordmark({ compact = false }: { compact?: boolean }) {
   return (
-    <span className="flex items-center gap-2.5 text-[#f4f4f5]">
+    <span className="flex items-center gap-2.5 text-ink">
       <Monogram size={compact ? 26 : 28} />
       <span
         className="font-semibold"

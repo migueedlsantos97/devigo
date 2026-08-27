@@ -5,6 +5,7 @@ import { useMemo } from 'react';
 import { analyzeTicket, simulateTicket, survivalCurve, type Leg } from '@devigo/core';
 import { formatMoney, formatOdds, formatPercent, getDictionary } from '@devigo/i18n';
 import { LangSwitch } from '@/components/lang-switch';
+import { ThemeToggle } from '@/components/theme-toggle';
 import { Monogram } from '@/components/logo';
 import { useLocale } from '@/lib/locale';
 import { DEFAULT_BANKROLL, KELLY_MULTIPLIER } from '@/lib/markets';
@@ -29,7 +30,7 @@ const TERMINAL = ` ✓ src/odds.test.ts            (7 tests)   8ms
  Test Files  5 passed (5)
       Tests  34 passed (34)`;
 
-const survivalColor = (p: number): string => (p > 0.4 ? '#34d399' : p > 0.15 ? '#f59e0b' : '#f43f5e');
+const survivalColor = (p: number): string => (p > 0.4 ? 'var(--ev)' : p > 0.15 ? 'var(--risk)' : 'var(--danger)');
 
 export default function LandingPage() {
   const [locale, setLocale] = useLocale();
@@ -55,18 +56,19 @@ export default function LandingPage() {
   }, [t]);
 
   return (
-    <div className="bg-canvas text-[#f4f4f5]">
-      <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-6 border-b border-hairline px-6 backdrop-blur-[14px] lg:px-10" style={{ background: 'rgba(9,9,11,.85)' }}>
+    <div className="bg-canvas text-ink">
+      <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-6 border-b border-hairline px-6 backdrop-blur-[14px] lg:px-10" style={{ background: 'var(--header-bg)' }}>
         <span className="flex items-center gap-2.5">
           <Monogram />
           <span className="text-[15px] font-semibold tracking-[-.015em]">Devigo</span>
         </span>
-        <nav className="flex flex-wrap items-center justify-end gap-4 text-[13px] text-[#a1a1aa] lg:gap-6">
-          <a href="#engine" className="hidden shrink-0 whitespace-nowrap hover:text-[#f4f4f5] sm:inline">{t.nav.engine}</a>
-          <a href="#proof" className="hidden shrink-0 whitespace-nowrap hover:text-[#f4f4f5] sm:inline">{t.nav.proof}</a>
-          <a href="#pricing" className="hidden shrink-0 whitespace-nowrap hover:text-[#f4f4f5] sm:inline">{t.nav.pricing}</a>
-          <a href="#license" className="hidden shrink-0 whitespace-nowrap hover:text-[#f4f4f5] md:inline">{t.nav.whiteLabel}</a>
+        <nav className="flex flex-wrap items-center justify-end gap-4 text-[13px] text-ink-2 lg:gap-6">
+          <a href="#engine" className="hidden shrink-0 whitespace-nowrap hover:text-ink sm:inline">{t.nav.engine}</a>
+          <a href="#proof" className="hidden shrink-0 whitespace-nowrap hover:text-ink sm:inline">{t.nav.proof}</a>
+          <a href="#pricing" className="hidden shrink-0 whitespace-nowrap hover:text-ink sm:inline">{t.nav.pricing}</a>
+          <a href="#license" className="hidden shrink-0 whitespace-nowrap hover:text-ink md:inline">{t.nav.whiteLabel}</a>
           <LangSwitch locale={locale} onChange={setLocale} />
+          <ThemeToggle label={t.themeLabel} />
           <Link href="/panel" className="inline-flex min-h-[36px] shrink-0 items-center whitespace-nowrap rounded-lg bg-ev px-[15px] py-2 text-[12.5px] font-semibold text-ev-on hover:bg-ev-light">
             {t.nav.console}
           </Link>
@@ -84,28 +86,28 @@ export default function LandingPage() {
             <br />
             <span className="text-ev">{t.hero.h1b}</span>
           </h1>
-          <p className="mt-[22px] max-w-[560px] text-[17px] leading-[1.6] text-[#a1a1aa] [text-wrap:pretty]">{t.hero.body}</p>
+          <p className="mt-[22px] max-w-[560px] text-[17px] leading-[1.6] text-ink-2 [text-wrap:pretty]">{t.hero.body}</p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link href="/panel" className="inline-flex min-h-[44px] items-center justify-center rounded-[10px] bg-ev px-[22px] py-[13px] text-sm font-semibold text-ev-on hover:bg-ev-light">
               {t.hero.ctaPrimary}
             </Link>
-            <a href="#license" className="inline-flex min-h-[44px] items-center justify-center rounded-[10px] border border-[#27272a] px-[22px] py-[13px] text-sm font-medium text-[#f4f4f5] hover:border-[#3f3f46]">
+            <a href="#license" className="inline-flex min-h-[44px] items-center justify-center rounded-[10px] border border-ctrl-hover px-[22px] py-[13px] text-sm font-medium text-ink hover:border-ink-5">
               {t.hero.ctaSecondary}
             </a>
           </div>
           <div className="mt-11 flex flex-wrap gap-9 border-t border-hairline pt-[26px]">
             {t.metrics.map((metric) => (
               <div key={metric.label}>
-                <div className={`font-mono text-[26px] font-semibold ${metric.accent ? 'text-ev' : 'text-[#f4f4f5]'}`}>{metric.value}</div>
-                <div className="mt-[3px] max-w-[170px] text-xs leading-[1.4] text-[#71717a]">{metric.label}</div>
+                <div className={`font-mono text-[26px] font-semibold ${metric.accent ? 'text-ev' : 'text-ink'}`}>{metric.value}</div>
+                <div className="mt-[3px] max-w-[170px] text-xs leading-[1.4] text-ink-3">{metric.label}</div>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="min-w-0 rounded-[18px] border border-[#1f1f25] p-[18px]" style={{ background: 'linear-gradient(180deg,#111116,#0c0c10)', boxShadow: '0 40px 80px -40px #000' }}>
+        <div className="min-w-0 rounded-[18px] border border-edge-soft p-[18px]" style={{ background: 'linear-gradient(180deg,var(--raised),var(--sunken))', boxShadow: '0 40px 80px -40px #000' }}>
           <div className="flex items-center justify-between px-1 pb-3.5">
-            <span className="font-mono text-[11px] tracking-[.05em] text-[#71717a]">{t.heroCard.title}</span>
+            <span className="font-mono text-[11px] tracking-[.05em] text-ink-3">{t.heroCard.title}</span>
             <span className="font-mono text-[11px] text-ev">+EV {formatPercent(locale, sample.analysis.edge, 2)}</span>
           </div>
           <div className="flex flex-col gap-2">
@@ -119,7 +121,7 @@ export default function LandingPage() {
                       <div className="h-1 w-[120px] overflow-hidden rounded-sm bg-ctrl">
                         <div className="h-full transition-[width] duration-[350ms]" style={{ width: `${(alive * 100).toFixed(1)}%`, background: survivalColor(alive) }} />
                       </div>
-                      <span className="font-mono text-[10px] text-[#71717a]">
+                      <span className="font-mono text-[10px] text-ink-3">
                         {t.heroCard.survival(formatPercent(locale, alive, 1))}
                       </span>
                     </div>
@@ -131,11 +133,11 @@ export default function LandingPage() {
           </div>
           <div className="mt-3.5 grid grid-cols-3 gap-2">
             <div className="rounded-[10px] border border-ctrl bg-card px-3 py-[11px]">
-              <div className="text-[10px] uppercase tracking-[.05em] text-[#71717a]">{t.heroCard.statPrice}</div>
-              <div className="mt-[3px] font-mono text-[17px] font-semibold text-[#f4f4f5]">{formatOdds(locale, sample.analysis.combinedPrice)}</div>
+              <div className="text-[10px] uppercase tracking-[.05em] text-ink-3">{t.heroCard.statPrice}</div>
+              <div className="mt-[3px] font-mono text-[17px] font-semibold text-ink">{formatOdds(locale, sample.analysis.combinedPrice)}</div>
             </div>
             <div className="rounded-[10px] border border-ctrl bg-card px-3 py-[11px]">
-              <div className="text-[10px] uppercase tracking-[.05em] text-[#71717a]">{t.heroCard.statFair}</div>
+              <div className="text-[10px] uppercase tracking-[.05em] text-ink-3">{t.heroCard.statFair}</div>
               <div className="mt-[3px] font-mono text-[17px] font-semibold text-model">{formatOdds(locale, 1 / sample.analysis.jointProbability)}</div>
             </div>
             <div className="rounded-[10px] border border-ev-border bg-ev-deep px-3 py-[11px]">
@@ -143,18 +145,18 @@ export default function LandingPage() {
               <div className="mt-[3px] font-mono text-[17px] font-semibold text-ev">{formatMoney(locale, sample.analysis.kellyFraction * DEFAULT_BANKROLL)}</div>
             </div>
           </div>
-          <div className="mt-3.5 rounded-xl border border-[#1f1f25] bg-sunken p-[13px]">
-            <div className="flex items-center justify-between font-mono text-[10.5px] text-[#71717a]">
+          <div className="mt-3.5 rounded-xl border border-edge-soft bg-sunken p-[13px]">
+            <div className="flex items-center justify-between font-mono text-[10.5px] text-ink-3">
               <span>{t.heroCard.simLabel}</span>
-              <span className="text-[#a1a1aa]">{t.heroCard.simHit(formatPercent(locale, sample.sim.hitRate, 2))}</span>
+              <span className="text-ink-2">{t.heroCard.simHit(formatPercent(locale, sample.sim.hitRate, 2))}</span>
             </div>
             <div className="mt-2.5 flex h-14 items-end gap-[2px]">
               {sample.bars.map((bar, i) => (
-                <div key={i} className="min-h-[2px] flex-1 rounded-t-[2px]" style={{ height: `${bar.heightPct.toFixed(1)}%`, background: bar.profit ? '#34d399' : '#3f3f46' }} />
+                <div key={i} className="min-h-[2px] flex-1 rounded-t-[2px]" style={{ height: `${bar.heightPct.toFixed(1)}%`, background: bar.profit ? 'var(--ev)' : 'var(--text-5)' }} />
               ))}
             </div>
           </div>
-          <div className="mt-2.5 px-1 font-mono text-[10px] text-[#52525b]">{t.heroCard.disclaimer}</div>
+          <div className="mt-2.5 px-1 font-mono text-[10px] text-ink-4">{t.heroCard.disclaimer}</div>
         </div>
       </section>
 
@@ -163,15 +165,15 @@ export default function LandingPage() {
           <div className="max-w-[660px]">
             <div className="font-mono text-[11px] tracking-[.08em] text-ev">{t.engine.kicker}</div>
             <h2 className="mt-3.5 text-[30px] font-semibold leading-[1.1] tracking-[-.03em] [text-wrap:balance] md:text-[38px]">{t.engine.title}</h2>
-            <p className="mt-3.5 text-[15.5px] leading-[1.6] text-[#a1a1aa] [text-wrap:pretty]">{t.engine.body}</p>
+            <p className="mt-3.5 text-[15.5px] leading-[1.6] text-ink-2 [text-wrap:pretty]">{t.engine.body}</p>
           </div>
           <div className="mt-9 grid grid-cols-[repeat(auto-fit,minmax(250px,1fr))] gap-3.5">
             {t.engine.modules.map((mod) => (
-              <div key={mod.file} className="rounded-[14px] border border-edge bg-raised p-5 transition-colors hover:border-[#2c2c34]">
+              <div key={mod.file} className="rounded-[14px] border border-edge bg-raised p-5 transition-colors hover:border-ctrl-strong">
                 <div className="font-mono text-[11px] text-ev">{mod.file}</div>
                 <div className="mt-2.5 text-[15px] font-semibold tracking-[-.01em]">{mod.title}</div>
-                <p className="mt-2 text-[13px] leading-[1.6] text-[#a1a1aa]">{mod.body}</p>
-                <div className="mt-3.5 font-mono text-[11px] text-[#52525b]">{mod.detail}</div>
+                <p className="mt-2 text-[13px] leading-[1.6] text-ink-2">{mod.body}</p>
+                <div className="mt-3.5 font-mono text-[11px] text-ink-4">{mod.detail}</div>
               </div>
             ))}
           </div>
@@ -183,24 +185,24 @@ export default function LandingPage() {
           <div>
             <div className="font-mono text-[11px] tracking-[.08em] text-ev">{t.proof.kicker}</div>
             <h2 className="mt-3.5 text-[30px] font-semibold leading-[1.1] tracking-[-.03em] [text-wrap:balance] md:text-[38px]">{t.proof.title}</h2>
-            <p className="mt-3.5 text-[15.5px] leading-[1.6] text-[#a1a1aa] [text-wrap:pretty]">{t.proof.body}</p>
+            <p className="mt-3.5 text-[15.5px] leading-[1.6] text-ink-2 [text-wrap:pretty]">{t.proof.body}</p>
             <div className="mt-[26px] flex flex-col gap-2.5">
               {t.proof.points.map((point) => (
                 <div key={point} className="flex items-start gap-2.5">
                   <span className="mt-1.5 h-[5px] w-[5px] shrink-0 rounded-full bg-ev" />
-                  <span className="text-sm leading-[1.55] text-[#d4d4d8]">{point}</span>
+                  <span className="text-sm leading-[1.55] text-ink-bright">{point}</span>
                 </div>
               ))}
             </div>
           </div>
           <div className="overflow-hidden rounded-[14px] border border-edge bg-sunken">
             <div className="flex items-center gap-2 border-b border-edge bg-raised px-3.5 py-[11px]">
-              <span className="h-[9px] w-[9px] rounded-full bg-[#3f3f46]" />
-              <span className="h-[9px] w-[9px] rounded-full bg-[#3f3f46]" />
-              <span className="h-[9px] w-[9px] rounded-full bg-[#3f3f46]" />
-              <span className="ml-2 font-mono text-[11px] text-[#71717a]">pnpm test:cov — packages/core</span>
+              <span className="h-[9px] w-[9px] rounded-full bg-[var(--text-5)]" />
+              <span className="h-[9px] w-[9px] rounded-full bg-[var(--text-5)]" />
+              <span className="h-[9px] w-[9px] rounded-full bg-[var(--text-5)]" />
+              <span className="ml-2 font-mono text-[11px] text-ink-3">pnpm test:cov — packages/core</span>
             </div>
-            <pre className="m-0 overflow-x-auto p-[18px] font-mono text-xs leading-[1.75] text-[#a1a1aa]">{TERMINAL}</pre>
+            <pre className="m-0 overflow-x-auto p-[18px] font-mono text-xs leading-[1.75] text-ink-2">{TERMINAL}</pre>
           </div>
         </div>
       </section>
@@ -212,7 +214,7 @@ export default function LandingPage() {
               <div className="font-mono text-[11px] tracking-[.08em] text-ev">{t.pricing.kicker}</div>
               <h2 className="mt-3.5 text-[30px] font-semibold leading-[1.1] tracking-[-.03em] [text-wrap:balance] md:text-[38px]">{t.pricing.title}</h2>
             </div>
-            <div className="font-mono text-[11.5px] text-[#71717a]">{t.pricing.note}</div>
+            <div className="font-mono text-[11.5px] text-ink-3">{t.pricing.note}</div>
           </div>
           <div className="mt-[34px] grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-3.5">
             {t.pricing.plans.map((plan) => (
@@ -221,7 +223,7 @@ export default function LandingPage() {
                   <span className="text-sm font-semibold">{plan.name}</span>
                   <span
                     className={`whitespace-nowrap rounded-[5px] border px-[7px] py-[2px] font-mono text-[10px] ${
-                      plan.highlight ? 'border-ev-border text-ev-light' : plan.b2b ? 'border-risk-border text-risk' : 'border-[#27272a] text-[#a1a1aa]'
+                      plan.highlight ? 'border-ev-border text-ev-light' : plan.b2b ? 'border-risk-border text-risk' : 'border-ctrl-hover text-ink-2'
                     }`}
                   >
                     {plan.tag}
@@ -229,21 +231,21 @@ export default function LandingPage() {
                 </div>
                 <div className="mt-[18px] flex items-baseline gap-1.5">
                   <span className="font-mono text-4xl font-semibold tracking-[-.02em]">{plan.price}</span>
-                  <span className="text-[13px] text-[#71717a]">{plan.period}</span>
+                  <span className="text-[13px] text-ink-3">{plan.period}</span>
                 </div>
-                <p className="mt-2.5 text-[13px] leading-[1.6] text-[#a1a1aa]">{plan.blurb}</p>
+                <p className="mt-2.5 text-[13px] leading-[1.6] text-ink-2">{plan.blurb}</p>
                 <div className="mb-6 mt-5 flex flex-col gap-2">
                   {plan.features.map((feature) => (
                     <div key={feature} className="flex items-start gap-[9px]">
-                      <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-[#52525b]" />
-                      <span className="text-[13px] leading-[1.5] text-[#d4d4d8]">{feature}</span>
+                      <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-[var(--text-4)]" />
+                      <span className="text-[13px] leading-[1.5] text-ink-bright">{feature}</span>
                     </div>
                   ))}
                 </div>
                 <Link
                   href="/panel"
                   className={`mt-auto block min-h-[44px] content-center rounded-[9px] border py-[11px] text-center text-[13.5px] font-semibold ${
-                    plan.highlight ? 'border-ev bg-ev text-ev-on hover:bg-ev-light' : 'border-[#27272a] bg-transparent text-[#f4f4f5] hover:border-[#3f3f46]'
+                    plan.highlight ? 'border-ev bg-ev text-ev-on hover:bg-ev-light' : 'border-ctrl-hover bg-transparent text-ink hover:border-ink-5'
                   }`}
                 >
                   {plan.cta}
@@ -255,19 +257,19 @@ export default function LandingPage() {
       </section>
 
       <section id="license" className="border-t border-hairline px-6 py-[72px] lg:px-10">
-        <div className="mx-auto flex max-w-[1360px] flex-wrap items-center justify-between gap-10 rounded-[18px] border border-ev-subtle p-6 md:px-10 md:py-9" style={{ background: 'linear-gradient(120deg,#0d1f19,#101014 60%)' }}>
+        <div className="mx-auto flex max-w-[1360px] flex-wrap items-center justify-between gap-10 rounded-[18px] border border-ev-subtle p-6 md:px-10 md:py-9" style={{ background: 'linear-gradient(120deg,var(--ev-brand),var(--raised) 60%)' }}>
           <div className="max-w-[620px]">
             <h2 className="text-[26px] font-semibold leading-[1.15] tracking-[-.025em] [text-wrap:balance] md:text-[30px]">{t.license.title}</h2>
-            <p className="mt-3 text-[15px] leading-[1.6] text-[#a1a1aa] [text-wrap:pretty]">{t.license.body}</p>
+            <p className="mt-3 text-[15px] leading-[1.6] text-ink-2 [text-wrap:pretty]">{t.license.body}</p>
           </div>
           <div className="flex flex-wrap gap-3">
             <a href="#pricing" className="inline-flex min-h-[44px] items-center rounded-[10px] bg-ev px-[22px] py-[13px] text-sm font-semibold text-ev-on hover:bg-ev-light">{t.license.cta}</a>
-            <Link href="/panel" className="inline-flex min-h-[44px] items-center rounded-[10px] border border-[#27272a] px-[22px] py-[13px] text-sm font-medium text-[#f4f4f5] hover:border-[#3f3f46]">{t.license.ctaAlt}</Link>
+            <Link href="/panel" className="inline-flex min-h-[44px] items-center rounded-[10px] border border-ctrl-hover px-[22px] py-[13px] text-sm font-medium text-ink hover:border-ink-5">{t.license.ctaAlt}</Link>
           </div>
         </div>
       </section>
 
-      <footer className="mx-auto flex max-w-[1440px] flex-wrap justify-between gap-6 border-t border-hairline px-6 pb-11 pt-7 text-xs text-[#52525b] lg:px-10">
+      <footer className="mx-auto flex max-w-[1440px] flex-wrap justify-between gap-6 border-t border-hairline px-6 pb-11 pt-7 text-xs text-ink-4 lg:px-10">
         <span>{t.footer.legal}</span>
         <span className="font-mono">core@0.1.0 · adapters@0.1.0 · i18n@0.1.0 · ui@0.1.0</span>
       </footer>
