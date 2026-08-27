@@ -221,7 +221,9 @@ export const usePanel = (locale: Locale): PanelState => {
       .then((data) => {
         if (cancelled) return;
         if (!data || data.source !== 'live' || data.markets.length === 0) {
-          setFeed('unavailable');
+          // Keep the server's reason — 'quota' must not collapse into a
+          // generic outage, they tell the user to do different things.
+          setFeed(data?.source === 'quota' ? 'quota' : 'unavailable');
           return;
         }
         setMarkets(data.markets);
