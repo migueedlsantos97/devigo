@@ -1,0 +1,339 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap">
+  <style>
+    body { margin: 0; background: #09090b; color: #f4f4f5; font-family: Geist, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+    a { color: #34d399; text-decoration: none; }
+    a:hover { color: #6ee7b7; }
+    .mono { font-family: "Geist Mono", ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+  </style>
+</helmet>
+
+<div style="width: 1440px; min-height: 900px; background: #09090b; display: flex; flex-direction: column;">
+
+  <div style="display: flex; align-items: center; gap: 24px; height: 56px; padding: 0 24px; border-bottom: 1px solid #17171b; background: rgba(9,9,11,0.9);">
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 7-7"></path><path d="M14 8h6v6"></path></svg>
+      <span style="font-size: 15px; font-weight: 600; letter-spacing: -0.02em;">Devigo</span>
+    </div>
+    <div style="display: flex; gap: 2px;">
+      <span style="font-size: 12.5px; padding: 6px 12px; border-radius: 7px; background: #18181b; color: #f4f4f5;">Armar</span>
+      <span style="font-size: 12.5px; padding: 6px 12px; border-radius: 7px; color: #71717a;">Historial</span>
+      <span style="font-size: 12.5px; padding: 6px 12px; border-radius: 7px; color: #71717a;">Escanear</span>
+    </div>
+    <div style="flex-grow: 1;"></div>
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <span style="font-size: 11px; color: #71717a;">Banca</span>
+      <span class="mono" style="font-size: 12.5px; color: #d4d4d8;">$ 10.000</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 6px; padding: 5px 10px; border: 1px solid #1c1c21; border-radius: 7px;">
+      <span style="width: 6px; height: 6px; border-radius: 50%; background: #34d399;"></span>
+      <span style="font-size: 11px; color: #a1a1aa;">Feed en vivo · 22 casas</span>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 380px minmax(0, 1fr) 372px; gap: 16px; padding: 16px 24px 24px; flex-grow: 1;">
+
+    <div style="display: flex; flex-direction: column; gap: 10px; min-width: 0;">
+      <div style="display: flex; align-items: baseline; justify-content: space-between;">
+        <span style="font-size: 13px; font-weight: 600;">Elegí los partidos</span>
+        <span style="font-size: 11px; color: #52525b;">2 elegidos</span>
+      </div>
+      <div style="display: flex; gap: 6px;">
+        <span style="font-size: 11.5px; padding: 5px 11px; border-radius: 999px; background: #0d1f19; border: 1px solid #0f5c43; color: #a7f3d0;">Hoy</span>
+        <span style="font-size: 11.5px; padding: 5px 11px; border-radius: 999px; border: 1px solid #1c1c21; color: #a1a1aa;">Mañana</span>
+        <span style="font-size: 11.5px; padding: 5px 11px; border-radius: 999px; border: 1px solid #1c1c21; color: #a1a1aa;">3 días</span>
+        <span style="font-size: 11.5px; padding: 5px 11px; border-radius: 999px; border: 1px solid #1c1c21; color: #a1a1aa;">Todo</span>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 10px; border: 1px solid #1c1c21; border-radius: 9px; background: #0c0c10;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#52525b" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+        <span style="font-size: 12.5px; color: #52525b;">Buscar equipo o liga</span>
+      </div>
+
+      <div style="display: flex; flex-direction: column; background: #101014; border: 1px solid #1c1c21; border-radius: 14px; overflow: hidden;">
+        <div style="padding: 8px 14px; background: #0c0c10; border-bottom: 1px solid #17171b;">
+          <span style="font-size: 10.5px; letter-spacing: 0.08em; color: #52525b;">HOY · URUGUAY · PRIMERA</span>
+        </div>
+
+        <div style="display: flex; gap: 11px; padding: 12px 14px; border-bottom: 1px solid #17171b; background: #0d1f19;">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="margin-top: 2px; flex-shrink: 0;"><rect x="3" y="3" width="18" height="18" rx="4"></rect><path d="M8 12.5l2.8 2.8L16.5 9"></path></svg>
+          <div style="flex-grow: 1; min-width: 0;">
+            <div style="font-size: 13px; font-weight: 500;">Nacional – Peñarol</div>
+            <div style="display: flex; gap: 10px; margin-top: 3px;">
+              <span class="mono" style="font-size: 11px; color: #71717a;">20:00</span>
+              <span style="font-size: 11px; color: #71717a;">14 casas</span>
+              <span style="font-size: 11px; color: #71717a;">6 especiales</span>
+            </div>
+          </div>
+          <div style="text-align: right; flex-shrink: 0;">
+            <div class="mono" style="font-size: 15px; font-weight: 600; color: #34d399;">4,1%</div>
+            <div style="font-size: 10px; color: #52525b;">se lleva</div>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 11px; padding: 12px 14px; border-bottom: 1px solid #17171b;">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#3f3f46" stroke-width="2" style="margin-top: 2px; flex-shrink: 0;"><rect x="3" y="3" width="18" height="18" rx="4"></rect></svg>
+          <div style="flex-grow: 1; min-width: 0;">
+            <div style="font-size: 13px; font-weight: 500; color: #d4d4d8;">Danubio – Liverpool</div>
+            <div style="display: flex; gap: 10px; margin-top: 3px;">
+              <span class="mono" style="font-size: 11px; color: #71717a;">19:00</span>
+              <span style="font-size: 11px; color: #71717a;">3 casas</span>
+            </div>
+          </div>
+          <div style="text-align: right; flex-shrink: 0;">
+            <div class="mono" style="font-size: 15px; font-weight: 600; color: #f43f5e;">11,4%</div>
+            <div style="font-size: 10px; color: #52525b;">se lleva</div>
+          </div>
+        </div>
+
+        <div style="padding: 8px 14px; background: #0c0c10; border-bottom: 1px solid #17171b;">
+          <span style="font-size: 10.5px; letter-spacing: 0.08em; color: #52525b;">HOY · PREMIER LEAGUE</span>
+        </div>
+
+        <div style="display: flex; gap: 11px; padding: 12px 14px; border-bottom: 1px solid #17171b; background: #0d1f19;">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="margin-top: 2px; flex-shrink: 0;"><rect x="3" y="3" width="18" height="18" rx="4"></rect><path d="M8 12.5l2.8 2.8L16.5 9"></path></svg>
+          <div style="flex-grow: 1; min-width: 0;">
+            <div style="font-size: 13px; font-weight: 500;">Man City – Arsenal</div>
+            <div style="display: flex; gap: 10px; margin-top: 3px;">
+              <span class="mono" style="font-size: 11px; color: #71717a;">17:30</span>
+              <span style="font-size: 11px; color: #71717a;">22 casas</span>
+              <span style="font-size: 11px; color: #71717a;">9 especiales</span>
+            </div>
+          </div>
+          <div style="text-align: right; flex-shrink: 0;">
+            <div class="mono" style="font-size: 15px; font-weight: 600; color: #34d399;">2,8%</div>
+            <div style="font-size: 10px; color: #52525b;">se lleva</div>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 11px; padding: 12px 14px; border-bottom: 1px solid #17171b;">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#3f3f46" stroke-width="2" style="margin-top: 2px; flex-shrink: 0;"><rect x="3" y="3" width="18" height="18" rx="4"></rect></svg>
+          <div style="flex-grow: 1; min-width: 0;">
+            <div style="font-size: 13px; font-weight: 500; color: #d4d4d8;">Chelsea – Everton</div>
+            <div style="display: flex; gap: 10px; margin-top: 3px;">
+              <span class="mono" style="font-size: 11px; color: #71717a;">15:00</span>
+              <span style="font-size: 11px; color: #71717a;">19 casas</span>
+            </div>
+          </div>
+          <div style="text-align: right; flex-shrink: 0;">
+            <div class="mono" style="font-size: 15px; font-weight: 600; color: #f59e0b;">6,7%</div>
+            <div style="font-size: 10px; color: #52525b;">se lleva</div>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 11px; padding: 12px 14px;">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#3f3f46" stroke-width="2" style="margin-top: 2px; flex-shrink: 0;"><rect x="3" y="3" width="18" height="18" rx="4"></rect></svg>
+          <div style="flex-grow: 1; min-width: 0;">
+            <div style="font-size: 13px; font-weight: 500; color: #d4d4d8;">Brighton – Newcastle</div>
+            <div style="display: flex; gap: 10px; margin-top: 3px;">
+              <span class="mono" style="font-size: 11px; color: #71717a;">15:00</span>
+              <span style="font-size: 11px; color: #71717a;">17 casas</span>
+            </div>
+          </div>
+          <div style="text-align: right; flex-shrink: 0;">
+            <div class="mono" style="font-size: 15px; font-weight: 600; color: #f59e0b;">5,2%</div>
+            <div style="font-size: 10px; color: #52525b;">se lleva</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 8px; align-items: flex-start; padding: 10px 12px; border: 1px solid #1c1c21; border-radius: 9px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#52525b" stroke-width="2" stroke-linecap="round" style="margin-top: 1px; flex-shrink: 0;"><circle cx="12" cy="12" r="9"></circle><path d="M12 16v-5M12 8h.01"></path></svg>
+        <span style="font-size: 11px; line-height: 1.55; color: #71717a;">«Se lleva» es el margen de la casa en ese partido. Cuanto más bajo, más barato te sale jugarlo.</span>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 12px; min-width: 0;">
+      <div style="background: #101014; border: 1px solid #1c1c21; border-radius: 14px; overflow: hidden;">
+        <div style="display: flex; align-items: baseline; justify-content: space-between; padding: 14px 16px 12px;">
+          <div>
+            <div style="font-size: 14px; font-weight: 600;">Nacional – Peñarol</div>
+            <div style="font-size: 11.5px; color: #71717a; margin-top: 2px;">Lo que vale cada especial, según el modelo de marcadores</div>
+          </div>
+          <span style="font-size: 11px; color: #52525b;">Hoy 20:00</span>
+        </div>
+
+        <div style="display: grid; grid-template-columns: minmax(0, 1fr) 92px 108px; gap: 0; padding: 0 16px 6px; border-bottom: 1px solid #17171b;">
+          <span style="font-size: 10.5px; letter-spacing: 0.06em; color: #52525b;">ESPECIAL</span>
+          <span style="font-size: 10.5px; letter-spacing: 0.06em; color: #52525b; text-align: right;">VALE</span>
+          <span style="font-size: 10.5px; letter-spacing: 0.06em; color: #52525b; text-align: right;">TOMALA SI PAGA</span>
+        </div>
+
+        <div style="display: grid; grid-template-columns: minmax(0, 1fr) 92px 108px; align-items: center; padding: 11px 16px; border-bottom: 1px solid #17171b;">
+          <div>
+            <div style="font-size: 12.5px;">Gana Nacional y +2.5 goles</div>
+            <div style="font-size: 10.5px; color: #52525b; margin-top: 2px;">26,2% · suben juntas</div>
+          </div>
+          <span class="mono" style="font-size: 14px; text-align: right; color: #f4f4f5;">3,82</span>
+          <span class="mono" style="font-size: 14px; text-align: right; color: #34d399;">4,15</span>
+        </div>
+
+        <div style="display: grid; grid-template-columns: minmax(0, 1fr) 92px 108px; align-items: center; padding: 11px 16px; border-bottom: 1px solid #17171b;">
+          <div>
+            <div style="font-size: 12.5px;">Gana Nacional y −2.5 goles</div>
+            <div style="font-size: 10.5px; color: #52525b; margin-top: 2px;">18,8% · se estorban</div>
+          </div>
+          <span class="mono" style="font-size: 14px; text-align: right; color: #f4f4f5;">5,31</span>
+          <span class="mono" style="font-size: 14px; text-align: right; color: #34d399;">5,80</span>
+        </div>
+
+        <div style="display: grid; grid-template-columns: minmax(0, 1fr) 92px 108px; align-items: center; padding: 11px 16px; border-bottom: 1px solid #17171b;">
+          <div>
+            <div style="font-size: 12.5px;">Ambos marcan y gana Nacional</div>
+            <div style="font-size: 10.5px; color: #52525b; margin-top: 2px;">21,4% · se estorban</div>
+          </div>
+          <span class="mono" style="font-size: 14px; text-align: right; color: #f4f4f5;">4,67</span>
+          <span class="mono" style="font-size: 14px; text-align: right; color: #34d399;">5,10</span>
+        </div>
+
+        <div style="display: grid; grid-template-columns: minmax(0, 1fr) 92px 108px; align-items: center; padding: 11px 16px; border-bottom: 1px solid #17171b;">
+          <div>
+            <div style="font-size: 12.5px;">Empate y −2.5 goles</div>
+            <div style="font-size: 10.5px; color: #52525b; margin-top: 2px;">21,0% · suben juntas</div>
+          </div>
+          <span class="mono" style="font-size: 14px; text-align: right; color: #f4f4f5;">4,76</span>
+          <span class="mono" style="font-size: 14px; text-align: right; color: #34d399;">5,20</span>
+        </div>
+
+        <div style="display: grid; grid-template-columns: minmax(0, 1fr) 92px 108px; align-items: center; padding: 11px 16px;">
+          <div>
+            <div style="font-size: 12.5px;">Nacional 2 – 1</div>
+            <div style="font-size: 10.5px; color: #52525b; margin-top: 2px;">9,2% · resultado exacto</div>
+          </div>
+          <span class="mono" style="font-size: 14px; text-align: right; color: #f4f4f5;">10,89</span>
+          <span class="mono" style="font-size: 14px; text-align: right; color: #34d399;">11,90</span>
+        </div>
+
+        <div style="display: flex; gap: 9px; align-items: flex-start; padding: 12px 16px; background: #0c0c10; border-top: 1px solid #17171b;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#71717a" stroke-width="2" stroke-linecap="round" style="margin-top: 1px; flex-shrink: 0;"><path d="M4 17l6-6 4 4 6-7"></path></svg>
+          <span style="font-size: 11px; line-height: 1.6; color: #a1a1aa;">Calculado con el 1X2 y los totales del partido, des-vigados y ajustados a la distribución de marcadores. Abrí tu casa y mirá si alguno paga más que la columna verde.</span>
+        </div>
+      </div>
+
+      <div style="background: #101014; border: 1px solid #1c1c21; border-radius: 14px; padding: 14px 16px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+          <span style="font-size: 13px; font-weight: 600;">Combinada entre partidos</span>
+          <span style="font-size: 11px; color: #52525b;">Nacional – Peñarol · Man City – Arsenal</span>
+        </div>
+        <div style="display: flex; gap: 6px; margin-bottom: 12px;">
+          <span style="font-size: 11.5px; padding: 7px 14px; border-radius: 7px; background: #0d1f19; border: 1px solid #0f5c43; color: #a7f3d0;">Cobrar seguido</span>
+          <span style="font-size: 11.5px; padding: 7px 14px; border-radius: 7px; border: 1px solid #1c1c21; color: #a1a1aa;">Máximo valor</span>
+          <span style="font-size: 11.5px; padding: 7px 14px; border-radius: 7px; border: 1px solid #1c1c21; color: #a1a1aa;">Máximo pago</span>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 11px; padding: 10px 0; border-top: 1px solid #17171b;">
+          <span class="mono" style="font-size: 10.5px; width: 16px; color: #3f3f46;">01</span>
+          <div style="flex-grow: 1; min-width: 0;">
+            <div style="font-size: 12.5px;">Nacional gana</div>
+            <div style="font-size: 10.5px; color: #52525b; margin-top: 1px;">Betsson · mejor de 14</div>
+          </div>
+          <span class="mono" style="font-size: 13px; color: #71717a;">45,0%</span>
+          <span class="mono" style="font-size: 13.5px; width: 46px; text-align: right;">2,30</span>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 11px; padding: 10px 0; border-top: 1px solid #17171b;">
+          <span class="mono" style="font-size: 10.5px; width: 16px; color: #3f3f46;">02</span>
+          <div style="flex-grow: 1; min-width: 0;">
+            <div style="font-size: 12.5px;">Man City o empate</div>
+            <div style="font-size: 10.5px; color: #52525b; margin-top: 1px;">bet365 · mejor de 22</div>
+          </div>
+          <span class="mono" style="font-size: 13px; color: #71717a;">73,5%</span>
+          <span class="mono" style="font-size: 13.5px; width: 46px; text-align: right;">1,40</span>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 11px; padding: 10px 0; border-top: 1px solid #17171b; border-bottom: 1px solid #17171b;">
+          <span class="mono" style="font-size: 10.5px; width: 16px; color: #3f3f46;">03</span>
+          <div style="flex-grow: 1; min-width: 0;">
+            <div style="font-size: 12.5px;">+2.5 goles en Man City – Arsenal</div>
+            <div style="font-size: 10.5px; color: #52525b; margin-top: 1px;">Pinnacle · mejor de 22</div>
+          </div>
+          <span class="mono" style="font-size: 13px; color: #71717a;">56,0%</span>
+          <span class="mono" style="font-size: 13.5px; width: 46px; text-align: right;">1,82</span>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 8px; margin-top: 11px;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#52525b" stroke-width="2" stroke-linecap="round" style="flex-shrink: 0;"><path d="M12 5v14M5 12h14"></path></svg>
+          <span style="font-size: 11.5px; color: #71717a;">Agregar pata de otro partido</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 12px; min-width: 0;">
+      <div style="background: #101014; border: 1px solid #0f5c43; border-radius: 14px; overflow: hidden;">
+        <div style="padding: 16px 16px 14px;">
+          <div style="font-size: 11px; color: #71717a;">Con $ 200 cobrás</div>
+          <div class="mono" style="font-size: 30px; font-weight: 600; letter-spacing: -0.02em; margin-top: 3px;">$ 1.172</div>
+          <div style="display: flex; gap: 6px; margin-top: 10px;">
+            <span class="mono" style="font-size: 11.5px; padding: 5px 10px; border-radius: 7px; background: #18181b; color: #a1a1aa;">$ 100</span>
+            <span class="mono" style="font-size: 11.5px; padding: 5px 10px; border-radius: 7px; background: #232329; color: #f4f4f5;">$ 200</span>
+            <span class="mono" style="font-size: 11.5px; padding: 5px 10px; border-radius: 7px; background: #18181b; color: #a1a1aa;">$ 500</span>
+            <span class="mono" style="font-size: 11.5px; padding: 5px 10px; border-radius: 7px; background: #18181b; color: #a1a1aa;">$ 1.000</span>
+          </div>
+        </div>
+
+        <div style="padding: 12px 16px; border-top: 1px solid #17171b; display: flex; flex-direction: column; gap: 9px;">
+          <div style="display: flex; justify-content: space-between; align-items: baseline;">
+            <span style="font-size: 12px; color: #a1a1aa;">Te paga</span>
+            <span class="mono" style="font-size: 14px;">5,86</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: baseline;">
+            <span style="font-size: 12px; color: #a1a1aa;">Vale</span>
+            <span class="mono" style="font-size: 14px;">5,09</span>
+          </div>
+          <div style="height: 5px; border-radius: 999px; background: #17171b; overflow: hidden; display: flex;">
+            <span style="width: 87%; background: #34d399;"></span>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: baseline;">
+            <span style="font-size: 12px; color: #a1a1aa;">A tu favor</span>
+            <span class="mono" style="font-size: 16px; font-weight: 600; color: #34d399;">+15,1%</span>
+          </div>
+        </div>
+
+        <div style="padding: 12px 16px; border-top: 1px solid #17171b; display: flex; flex-direction: column; gap: 9px;">
+          <div style="display: flex; justify-content: space-between; align-items: baseline;">
+            <span style="font-size: 12px; color: #a1a1aa;">Cobrás</span>
+            <span style="font-size: 12.5px;">1 de cada <span class="mono">5,09</span> veces</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: baseline;">
+            <span style="font-size: 12px; color: #a1a1aa;">Apuesta sugerida</span>
+            <span class="mono" style="font-size: 12.5px;">$ 77</span>
+          </div>
+          <div style="font-size: 10.5px; color: #52525b;">¼ de Kelly sobre una banca de $ 10.000. Apostar $ 200 es 2,6 veces eso.</div>
+        </div>
+
+        <div style="padding: 13px 16px; background: #0d1f19; border-top: 1px solid #1f4237;">
+          <div style="display: flex; gap: 8px; align-items: flex-start;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-top: 2px; flex-shrink: 0;"><path d="M20 6L9 17l-5-5"></path></svg>
+            <span style="font-size: 11.5px; line-height: 1.6; color: #a7f3d0;">Esta combinada paga más de lo que vale. «Nacional gana» y «+2.5 goles» suben juntas y tu casa las cotizó como si no tuvieran relación.</span>
+          </div>
+        </div>
+
+        <div style="padding: 12px 16px 16px;">
+          <div style="display: flex; align-items: center; justify-content: center; height: 42px; border-radius: 9px; background: #34d399; color: #052e21; font-size: 13px; font-weight: 600;">Guardar en el historial</div>
+          <div style="display: flex; align-items: center; justify-content: center; height: 38px; margin-top: 8px; border-radius: 9px; border: 1px solid #232329; color: #a1a1aa; font-size: 12.5px;">Copiar las patas</div>
+        </div>
+      </div>
+
+      <div style="background: #101014; border: 1px solid #1c1c21; border-radius: 14px; padding: 13px 16px;">
+        <div style="font-size: 11px; letter-spacing: 0.06em; color: #52525b; margin-bottom: 10px;">SI EN CAMBIO LAS JUGÁS SUELTAS</div>
+        <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px;">
+          <span style="font-size: 12px; color: #a1a1aa;">3 apuestas de $ 67</span>
+          <span class="mono" style="font-size: 13px; color: #d4d4d8;">+2,8%</span>
+        </div>
+        <div style="font-size: 11px; line-height: 1.6; color: #71717a;">Menos ventaja, pero cobrás mucho más seguido. Combinar sube el pago y la varianza a la vez.</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

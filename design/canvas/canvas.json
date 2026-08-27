@@ -1,0 +1,33 @@
+{
+  "artboards": [
+    { "file": "Main.dc.html", "x": 0, "y": 0, "w": 1440, "h": 900, "title": "Panel — armar" },
+    { "file": "PanelMobile.dc.html", "x": 1560, "y": 0, "w": 390, "h": 844, "title": "Panel — celular" },
+    { "file": "Landing.dc.html", "x": 0, "y": 1080, "w": 1440, "h": 2200, "title": "Landing" },
+    { "file": "History.dc.html", "x": 1560, "y": 1080, "w": 1440, "h": 980, "title": "Historial" },
+    { "file": "B2B.dc.html", "x": 3120, "y": 1080, "w": 1440, "h": 2250, "title": "Motor — venta a casas" }
+  ],
+  "annotations": [
+    {
+      "id": "nota-margen",
+      "x": -300,
+      "y": 120,
+      "w": 250,
+      "text": "El número protagonista de cada partido es el margen de la casa, no una predicción.\n\nVerde barato, rojo caro. Nadie más lo muestra."
+    },
+    {
+      "id": "nota-lista",
+      "x": -300,
+      "y": 420,
+      "w": 250,
+      "text": "La lista de compras se calcula sin ver los precios de Supermatch.\n\nVale / tomala si paga. Dos números, no cinco."
+    },
+    {
+      "id": "nota-clv",
+      "x": 1560,
+      "y": 940,
+      "w": 250,
+      "text": "El historial cuenta una verdad incómoda a propósito: resultado negativo con ventaja positiva sobre el cierre = varianza, no método."
+    }
+  ],
+  "launch": { "view": "canvas" }
+}
