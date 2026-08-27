@@ -75,3 +75,46 @@ offline mode.
 
 > Modelling tool, not betting advice. 18+. The landing's sample ticket is a hypothetical
 > scenario computed live by `@devigo/core`; hero metrics state only verifiable product facts.
+
+## Sign-in email (Supabase + Resend)
+
+Supabase's built-in mailer is capped at a few messages an hour and is meant
+for testing, so account sign-in needs a real SMTP sender.
+
+**Send from a subdomain, not the root domain.** `warden.website` already runs
+mail through GoDaddy (`MX → secureserver.net`) under a strict SPF record
+(`v=spf1 include:secureserver.net -all`). Adding Resend to that record risks
+breaking mail that already works, for no benefit. A dedicated subdomain such
+as `devigo.warden.website` gets its own records, leaves the root untouched,
+and keeps sending reputation separate. The root's DMARC policy
+(`p=quarantine` with relaxed alignment) accepts a subdomain that signs with
+its own DKIM key.
+
+Setup, once:
+
+1. Resend → **Domains → Add Domain** → enter the subdomain.
+2. Resend shows three records (the DKIM key is unique per account, so copy the
+   values it gives you). In GoDaddy's DNS editor the **Name** field is
+   relative to the root, so drop the trailing `.warden.website`:
+
+   | Type | Name (GoDaddy) | Value |
+   | --- | --- | --- |
+   | MX | `send.devigo` | `feedback-smtp.<region>.amazonses.com`, priority 10 |
+   | TXT | `send.devigo` | `v=spf1 include:amazonses.com ~all` |
+   | TXT | `resend._domainkey.devigo` | the `p=MIG...` key Resend shows |
+
+3. Wait for Resend to report the domain verified (usually minutes).
+4. Resend → **API Keys → Create**, scope it to sending.
+5. Supabase → **Project Settings → Authentication → SMTP Settings**:
+
+   | Field | Value |
+   | --- | --- |
+   | Host | `smtp.resend.com` |
+   | Port | `465` |
+   | Username | `resend` |
+   | Password | the Resend API key |
+   | Sender email | `acceso@devigo.warden.website` |
+   | Sender name | `Devigo` |
+
+The API key is a send credential: keep it in Supabase's settings only — it
+belongs in neither this repo nor the client bundle.
