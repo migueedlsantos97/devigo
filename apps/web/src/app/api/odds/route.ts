@@ -1,49 +1,75 @@
 import { adjustForCommission, bestOffers } from '@devigo/core';
-import { createTheOddsApiAdapter, OddsFeedQuotaError, type OddsFeedEvent } from '@devigo/adapters';
+import {
+  createOddsPapiAdapter,
+  OddsPapiRateLimitError,
+  type OddsFeedEvent,
+} from '@devigo/adapters';
 import type { NormalizedMarket, OddsFeedResponse } from '@/lib/markets';
 
-// Always evaluated at request time (the API key is a runtime env var); the
-// upstream feed itself is cached for an hour via the fetch Data Cache below.
-// A request costs (markets x regions) credits per league, so the cache window
-// is what decides the monthly bill: at one hour, eight leagues cost ~11.5k
-// credits a month even under constant traffic.
+// The handler itself must run on every request: the API key is a runtime env
+// var, and the board is assembled from whatever is warm right now.
 export const dynamic = 'force-dynamic';
 
 /**
- * South America first: it is the home market, and the scoreline model only
- * works on football anyway. The Odds API carries no Uruguayan league — the
- * Uruguayan sides reach the board through Libertadores and Sudamericana, and
- * the domestic fixtures come in through manually entered prices instead.
+ * Competitions by OddsPapi tournament id. South America first: it is the home
+ * market and the only one where a Uruguayan bettor's fixtures actually live.
+ *
+ * Uruguay's own Primera is here, which is the point of the provider switch —
+ * no other feed we found carries it.
  */
-const LEAGUES: ReadonlyArray<{ key: string; label: string; soccer: boolean }> = [
-  { key: 'soccer_conmebol_copa_libertadores', label: 'LIBERTADORES', soccer: true },
-  { key: 'soccer_conmebol_copa_sudamericana', label: 'SUDAMERICANA', soccer: true },
-  { key: 'soccer_argentina_primera_division', label: 'ARG', soccer: true },
-  { key: 'soccer_brazil_campeonato', label: 'BRASIL', soccer: true },
-  { key: 'soccer_chile_campeonato', label: 'CHILE', soccer: true },
-  { key: 'soccer_mexico_ligamx', label: 'MEXICO', soccer: true },
-  { key: 'soccer_epl', label: 'EPL', soccer: true },
-  { key: 'soccer_spain_la_liga', label: 'LALIGA', soccer: true },
+const TOURNAMENTS: ReadonlyArray<{ id: number; label: string }> = [
+  { id: 278, label: 'Uruguay · Primera' },
+  { id: 37127, label: 'Uruguay · Copa' },
+  { id: 384, label: 'Libertadores' },
+  { id: 480, label: 'Sudamericana' },
+  { id: 155, label: 'Argentina · Liga Profesional' },
+  { id: 325, label: 'Brasil · Série A' },
+  { id: 390, label: 'Brasil · Série B' },
+  { id: 27665, label: 'Chile · Primera' },
+  { id: 406, label: 'Perú · Liga 1' },
+  { id: 27070, label: 'Colombia · Primera A' },
+  { id: 240, label: 'Ecuador · LigaPro' },
+  { id: 33980, label: 'Bolivia · División Profesional' },
+  { id: 231, label: 'Venezuela · Primera' },
+  { id: 853, label: 'Amistosos de clubes' },
+  { id: 17, label: 'Premier League' },
+  { id: 8, label: 'LaLiga' },
 ];
 
-const MAX_EVENTS_PER_LEAGUE = 3;
-const MAX_BOOKS_PER_EVENT = 10;
+/**
+ * COST. One fixtures call per competition plus one odds call per fixture:
+ * 16 competitions x (1 + 3) = 64 requests to fill the board from cold. At an
+ * hour's cache that is ~46k requests a month under constant traffic, inside
+ * OddsPapi's ~100k tier, and far less in practice because only a miss spends.
+ */
+const FIXTURES_PER_TOURNAMENT = 3;
+const MAX_BOOKS_PER_EVENT = 24;
+/**
+ * OddsPapi rate limits per endpoint well before any documented quota, so every
+ * call goes through one lane inside the adapter with this gap between them.
+ */
+const REQUEST_GAP_MS = 250;
+const RETRY_AFTER_MS = 1200;
+/**
+ * How long this handler is allowed to spend filling a cold cache. Kept under a
+ * serverless function's timeout: better to answer with part of the board and
+ * warm the rest on the next load than to be killed holding all of it.
+ */
+const BUDGET_MS = 8000;
+/** How long a competition stays warm before it is worth asking again. */
+const CACHE_MS = 60 * 60 * 1000;
 
 /**
  * Commission on net winnings charged by betting exchanges (classic sportsbooks
  * charge nothing here — their take is already inside the price as vig).
- * Standard published base rates; adjust if your account tier differs.
  */
 const EXCHANGE_COMMISSION: Record<string, number> = {
-  betfair_ex_uk: 0.05,
-  betfair_ex_eu: 0.05,
-  betfair_ex_au: 0.05,
+  'betfair-ex': 0.05,
   smarkets: 0.02,
   matchbook: 0.02,
   betdaq: 0.02,
 };
 
-/** Groups one event's per-book h2h quotes into a single market with an aligned price matrix. */
 const totalsPoint = (market: string): string | null => {
   const m = /^totals:(.+)$/.exec(market);
   return m ? (m[1] as string) : null;
@@ -56,10 +82,10 @@ const runnerLabel = (raw: string, point: string | null): { es: string; en: strin
   return { es: raw, en: raw };
 };
 
+/** Folds one fixture's per-book quotes for a single market into a price matrix. */
 const toMarket = (
   group: ReadonlyArray<OddsFeedEvent>,
   leagueLabel: string,
-  soccer: boolean,
 ): NormalizedMarket | null => {
   const first = group[0];
   if (!first || first.runners.length < 2) return null;
@@ -85,23 +111,18 @@ const toMarket = (
     set.map((price) => adjustForCommission(price, commissions[b] ?? 0)),
   );
   const offers = bestOffers(netSets);
-  const matchup = soccer
-    ? `${first.homeTeam} vs ${first.awayTeam}`
-    : `${first.awayTeam} @ ${first.homeTeam}`;
 
   const marketName =
     point !== null
       ? { es: `Más/Menos ${point}`, en: `Over/Under ${point}` }
-      : labels.length === 3
-        ? { es: '1X2', en: '1X2' }
-        : { es: 'Ganador', en: 'Moneyline' };
+      : { es: '1X2', en: '1X2' };
 
   return {
     id: `${first.eventId}:${first.market}`,
     eventId: first.eventId,
     league: leagueLabel,
     startsAt: first.startsAt,
-    matchup,
+    matchup: `${first.homeTeam} vs ${first.awayTeam}`,
     homeTeam: first.homeTeam,
     awayTeam: first.awayTeam,
     totalsLine: point === null ? null : Number(point),
@@ -122,59 +143,129 @@ const toMarket = (
   };
 };
 
+/** The line the market concentrates on; everything else is a side quote. */
+const CENTRAL_LINE = 2.5;
+
+/**
+ * The totals line to calibrate a fixture on.
+ *
+ * Not simply the most-quoted line: a 0.5 line is often quoted by everyone and
+ * says almost nothing about how many goals a match will have, and anchoring the
+ * fit there can ask for fewer goals than the 1X2 shape can produce — which the
+ * model cannot deliver, because its shared-goals term only ever adds goals. So
+ * among lines with real book coverage, take the one nearest the centre.
+ */
+const pickTotals = (
+  byMarket: Map<string, OddsFeedEvent[]>,
+): ReadonlyArray<OddsFeedEvent> | null => {
+  const lines = [...byMarket.entries()]
+    .map(([key, group]) => ({ line: Number(totalsPoint(key)), group }))
+    .filter((entry) => Number.isFinite(entry.line));
+  if (lines.length === 0) return null;
+
+  const deepest = Math.max(...lines.map((entry) => entry.group.length));
+  const wellQuoted = lines.filter((entry) => entry.group.length >= deepest / 2);
+  wellQuoted.sort(
+    (a, b) => Math.abs(a.line - CENTRAL_LINE) - Math.abs(b.line - CENTRAL_LINE),
+  );
+  return wellQuoted[0]?.group ?? null;
+};
+
+const toMarkets = (
+  events: ReadonlyArray<OddsFeedEvent>,
+  leagueLabel: string,
+): ReadonlyArray<NormalizedMarket> => {
+  const byFixture = new Map<string, Map<string, OddsFeedEvent[]>>();
+  for (const event of events) {
+    const perMarket = byFixture.get(event.eventId) ?? new Map<string, OddsFeedEvent[]>();
+    byFixture.set(event.eventId, perMarket);
+    const group = perMarket.get(event.market);
+    if (group) group.push(event);
+    else perMarket.set(event.market, [event]);
+  }
+
+  const markets: NormalizedMarket[] = [];
+  for (const perMarket of byFixture.values()) {
+    const result = perMarket.get('h2h');
+    const resultMarket = result ? toMarket(result, leagueLabel) : null;
+    // Without a result market there is nothing to fit and nothing to shop:
+    // a lone totals line is not a fixture the board can price.
+    if (!resultMarket) continue;
+    markets.push(resultMarket);
+
+    const totals = pickTotals(perMarket);
+    const totalsMarket = totals ? toMarket(totals, leagueLabel) : null;
+    if (totalsMarket) markets.push(totalsMarket);
+  }
+  return markets;
+};
+
+/**
+ * Competition → the markets last built for it. Next's Data Cache is bypassed
+ * by `force-dynamic` here, which would make every load re-fetch the whole
+ * board, so the cache is kept explicitly instead of relying on framework
+ * semantics that are easy to get wrong and silent when they are.
+ *
+ * A serverless instance holds its own copy, so a cold instance pays again.
+ * That is a smaller cost than refetching sixteen competitions per request.
+ */
+const cache = new Map<number, { readonly at: number; readonly markets: ReadonlyArray<NormalizedMarket> }>();
+
 export async function GET(): Promise<Response> {
-  const apiKey = process.env['ODDS_API_KEY'];
+  const apiKey = process.env['ODDSPAPI_API_KEY'];
   if (!apiKey) {
     const body: OddsFeedResponse = { source: 'unavailable', markets: [] };
     return Response.json(body);
   }
 
-  const adapter = createTheOddsApiAdapter({
+  const adapter = createOddsPapiAdapter({
     apiKey,
-    markets: 'h2h,totals',
-    fetchImpl: (input, init) => fetch(input, { ...init, next: { revalidate: 3600 } }),
+    fixturesPerTournament: FIXTURES_PER_TOURNAMENT,
+    minGapMs: REQUEST_GAP_MS,
+    retryAfterMs: RETRY_AFTER_MS,
   });
 
-  const settled = await Promise.allSettled(
-    LEAGUES.map(async (league) => {
-      const events = await adapter.fetchEvents(league.key);
-      // Group quotes by (event, market-line); keep event order of first appearance.
-      const byEvent = new Map<string, Map<string, OddsFeedEvent[]>>();
-      for (const event of events) {
-        if (event.market !== 'h2h' && totalsPoint(event.market) === null) continue;
-        const perMarket = byEvent.get(event.eventId) ?? new Map<string, OddsFeedEvent[]>();
-        if (!byEvent.has(event.eventId)) byEvent.set(event.eventId, perMarket);
-        const group = perMarket.get(event.market);
-        if (group) group.push(event);
-        else perMarket.set(event.market, [event]);
-      }
-      const markets: NormalizedMarket[] = [];
-      let eventCount = 0;
-      for (const perMarket of byEvent.values()) {
-        if (eventCount >= MAX_EVENTS_PER_LEAGUE) break;
-        eventCount += 1;
-        const h2h = perMarket.get('h2h');
-        const h2hMarket = h2h ? toMarket(h2h, league.label, league.soccer) : null;
-        if (h2hMarket) markets.push(h2hMarket);
-        // Of the totals lines quoted, keep the one with the deepest book coverage.
-        const totalsGroups = [...perMarket.entries()]
-          .filter(([key]) => totalsPoint(key) !== null)
-          .map(([, group]) => group)
-          .sort((a, b) => b.length - a.length);
-        const bestTotals = totalsGroups[0];
-        const totalsMarket = bestTotals ? toMarket(bestTotals, league.label, league.soccer) : null;
-        if (totalsMarket) markets.push(totalsMarket);
-      }
-      return markets;
-    }),
-  );
+  /**
+   * Cached competitions are served free and instantly; the rest are fetched in
+   * order until the budget runs out, and whatever is left waits for the next
+   * load. The board therefore fills in over the first few loads rather than one
+   * request hanging long enough for the platform to kill it.
+   */
+  const now = Date.now();
+  const deadline = now + BUDGET_MS;
+  const markets: NormalizedMarket[] = [];
+  let throttled = false;
+  let reached = false;
 
-  const markets = settled.flatMap((r) => (r.status === 'fulfilled' ? r.value : []));
+  for (const tournament of TOURNAMENTS) {
+    const hit = cache.get(tournament.id);
+    if (hit && now - hit.at < CACHE_MS) {
+      markets.push(...hit.markets);
+      reached = true;
+      continue;
+    }
+    if (Date.now() > deadline) continue;
+    try {
+      const fresh = toMarkets(await adapter.fetchEvents(String(tournament.id)), tournament.label);
+      cache.set(tournament.id, { at: Date.now(), markets: fresh });
+      markets.push(...fresh);
+      reached = true;
+    } catch (error) {
+      if (error instanceof OddsPapiRateLimitError) throttled = true;
+      // Stale beats empty: a competition we already have is worth showing
+      // while the provider is unhappy, rather than dropping it off the board.
+      if (hit) markets.push(...hit.markets);
+    }
+  }
+
   if (markets.length) return Response.json({ source: 'live', markets } satisfies OddsFeedResponse);
 
-  const quotaSpent = settled.some(
-    (r) => r.status === 'rejected' && r.reason instanceof OddsFeedQuotaError,
-  );
-  const body: OddsFeedResponse = { source: quotaSpent ? 'quota' : 'unavailable', markets: [] };
+  // A rate limit is temporary and a plan limit is not, but the user's next move
+  // is the same either way: wait. 'quota' says that; 'unavailable' says the feed
+  // is broken, which would send them looking for a fault that is not there.
+  const body: OddsFeedResponse = {
+    source: throttled || !reached ? 'quota' : 'unavailable',
+    markets: [],
+  };
   return Response.json(body);
 }

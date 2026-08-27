@@ -24,3 +24,9 @@ export const toFairMarkets = (
 ) => events.map((event) => ({ event, fair: devig(event.runners, method) }));
 
 export { createTheOddsApiAdapter, OddsFeedQuotaError } from './the-odds-api.js';
+export {
+  createOddsPapiAdapter,
+  OddsPapiError,
+  OddsPapiRateLimitError,
+  type OddsPapiOptions,
+} from './oddspapi.js';

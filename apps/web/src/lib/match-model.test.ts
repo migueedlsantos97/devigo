@@ -43,12 +43,13 @@ const TOTALS = market({
   totalsLine: 2.5,
   marketName: { es: 'Más/Menos 2.5', en: 'Over/Under 2.5' },
   runners: [runner('Over 2.5', 1.85), runner('Under 2.5', 1.95)],
-  books: ['bet365', 'pinnacle'],
+  books: ['bet365', 'pinnacle', 'betano'],
   priceSets: [
     [1.85, 1.95],
     [1.87, 1.93],
+    [1.86, 1.94],
   ],
-  commissions: [0, 0],
+  commissions: [0, 0, 0],
 });
 
 describe('groupMatches', () => {
@@ -114,9 +115,9 @@ describe('fitMatchModel', () => {
       id: 'e1:totals:2.5',
       totalsLine: 2.5,
       runners: [runner('Over 2.5', 1.85), runner('Under 2.5', 1.95)],
-      books: ['bet365'],
-      priceSets: [[500, 1.001]],
-      commissions: [0],
+      books: ['bet365', 'pinnacle', 'betano'],
+      priceSets: [[500, 1.001], [480, 1.002], [510, 1.001]],
+      commissions: [0, 0, 0],
     });
     expect(fitMatchModel(groupMatches([RESULT, broken])[0]!)?.usedTotals).toBe(false);
   });
@@ -126,9 +127,9 @@ describe('fitMatchModel', () => {
       id: 'e1:totals:2.5',
       totalsLine: 2.5,
       runners: [runner('Yes', 1.85), runner('No', 1.95)],
-      books: ['bet365'],
-      priceSets: [[1.85, 1.95]],
-      commissions: [0],
+      books: ['bet365', 'pinnacle', 'betano'],
+      priceSets: [[1.85, 1.95], [1.87, 1.93], [1.86, 1.94]],
+      commissions: [0, 0, 0],
     });
     expect(fitMatchModel(groupMatches([RESULT, odd])[0]!)?.usedTotals).toBe(false);
   });
@@ -223,5 +224,21 @@ describe('specialsFor', () => {
     expect(threeFive.find((s) => s.key === 'home-over')?.label.es).toBe(
       'Gana Arsenal y +3.5 goles',
     );
+  });
+});
+
+describe('totals depth', () => {
+  it('ignores a totals line only one book quotes', () => {
+    const thin = market({
+      id: 'e1:totals:2.5',
+      totalsLine: 2.5,
+      runners: [runner('Over 2.5', 1.85), runner('Under 2.5', 1.95)],
+      books: ['bet365'],
+      priceSets: [[1.85, 1.95]],
+      commissions: [0],
+    });
+    const model = fitMatchModel(groupMatches([RESULT, thin])[0]!);
+    expect(model?.usedTotals).toBe(false);
+    expect(model?.converged).toBe(true);
   });
 });

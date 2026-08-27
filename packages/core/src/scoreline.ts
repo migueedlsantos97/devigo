@@ -69,7 +69,12 @@ const SHARED_CEILING = 6;
 const BISECTION_STEPS = 50;
 const DEFAULT_MAX_GOALS = 10;
 const DEFAULT_MAX_PASSES = 40;
-const DEFAULT_TOLERANCE = 1e-9;
+/**
+ * A residual is a probability, and no price can express a difference this
+ * small — 1e-7 on a 50% chance moves a decimal price by about a billionth.
+ * Demanding more was flagging lopsided but perfectly good fits as failures.
+ */
+const DEFAULT_TOLERANCE = 1e-7;
 /** Below four goals a side the truncated tail is thick enough to distort the fit. */
 const MIN_MAX_GOALS = 4;
 

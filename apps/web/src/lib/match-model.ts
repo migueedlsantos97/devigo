@@ -9,7 +9,7 @@ import {
   type ScorelineModel,
   type ScorelineSelection,
 } from '@devigo/core';
-import { SPECIAL_EDGE_FLOOR, sportOf, type NormalizedMarket } from './markets';
+import { SPECIAL_EDGE_FLOOR, type NormalizedMarket } from './markets';
 
 /**
  * The feed hands out one row per market. A match is the unit the user thinks
@@ -82,16 +82,21 @@ export const houseTake = (match: MatchGroup): number | null => {
   return runners.reduce((sum, r) => sum + decimalToImplied(r.price), 0) - 1;
 };
 
+/** Below this, a totals line is one book's opinion rather than a market. */
+const MIN_TOTALS_BOOKS = 3;
+
 /** A totals probability this extreme is a broken quote, not a market. */
 const USABLE = (p: number): boolean => p > 0.01 && p < 0.99;
 
 /**
  * Fits the fixture's scoreline distribution to its own de-vigged prices.
- * Football only: the model is built on goals and a draw, so a two-way
- * moneyline has neither the third outcome nor the scoring shape it needs.
+ *
+ * The gate is the shape of the market, not the name of the competition: a
+ * three-way result market with a draw is a football market, whatever the league
+ * is called. Naming leagues is the feed's business and it changes; needing a
+ * third outcome is the model's business and it does not.
  */
 export const fitMatchModel = (match: MatchGroup): ScorelineModel | null => {
-  if (sportOf(match.league) !== 'futbol') return null;
   const result = match.result;
   if (!result || result.runners.length !== 3 || result.priceSets.length === 0) return null;
 
@@ -112,7 +117,11 @@ export const fitMatchModel = (match: MatchGroup): ScorelineModel | null => {
 
   const totals = match.totals;
   const line = totals?.totalsLine ?? null;
-  if (!totals || line === null || totals.priceSets.length === 0) {
+  // One book's totals quote is not a market. Calibrating the goal expectation
+  // on it while the result market carries twenty books imports that one book's
+  // opinion as fact — and when it disagrees with the result market by more than
+  // the model can bend, the fit fails outright.
+  if (!totals || line === null || totals.priceSets.length < MIN_TOTALS_BOOKS) {
     return fitScoreline(probabilities);
   }
 
@@ -177,8 +186,10 @@ export const specialsFor = (
   for (const result of RESULT_SIDES.filter((r) => r.side !== 'draw')) {
     combos.push({
       key: `${result.side}-btts`,
-      es: `Ambos marcan y ${result.es(h, a).toLowerCase()}`,
-      en: `Both teams score and ${result.en(h, a).toLowerCase()}`,
+      // Built this way round so the club's own name keeps its capitals:
+      // lower-casing the phrase turned "Central Español FC" into a typo.
+      es: `${result.es(h, a)} y ambos marcan`,
+      en: `${result.en(h, a)} and both teams score`,
       selections: [
         { kind: 'result', side: result.side },
         { kind: 'bothScore', scores: true },
