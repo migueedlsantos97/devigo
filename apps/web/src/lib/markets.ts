@@ -7,9 +7,20 @@ import type { BuildMode, VigMethod } from '@devigo/core';
  */
 export interface NormalizedMarket {
   readonly id: string;
+  /** Feed id of the fixture, shared by every market quoted on it. */
+  readonly eventId: string;
   readonly league: string;
   readonly startsAt: string;
   readonly matchup: string;
+  /**
+   * Sides as the feed names them. `matchup` reads differently per sport
+   * ("A vs B" for football, "B @ A" elsewhere), so it cannot be parsed back
+   * into sides — and the scoreline model has to know which is which.
+   */
+  readonly homeTeam: string;
+  readonly awayTeam: string;
+  /** Goal line when this is a totals market, else null. */
+  readonly totalsLine: number | null;
   readonly marketName: Record<Locale, string>;
   /**
    * `price` is the best commission-adjusted offer across `books`; `book` names the
@@ -66,6 +77,14 @@ export const STYLE_CONFIG: Record<BuildMode, { maxLegs: number; minLegProb: numb
 
 /** Fixed pairwise correlation applied between legs sharing a matchup — not user-tunable. */
 export const SAME_MATCH_RHO = 0.35;
+
+/**
+ * How far a special must beat its fair price before it is worth flagging.
+ * The model is fitted to consensus prices, which carry their own error; a
+ * thinner edge than this sits inside that error and would be noise sold as a
+ * finding.
+ */
+export const SPECIAL_EDGE_FLOOR = 0.09;
 
 export const STAKE_STEPS: ReadonlyArray<number> = [5, 10, 25, 50, 100];
 

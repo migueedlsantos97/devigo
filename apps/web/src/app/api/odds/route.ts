@@ -85,9 +85,13 @@ const toMarket = (
 
   return {
     id: `${first.eventId}:${first.market}`,
+    eventId: first.eventId,
     league: leagueLabel,
     startsAt: first.startsAt,
     matchup,
+    homeTeam: first.homeTeam,
+    awayTeam: first.awayTeam,
+    totalsLine: point === null ? null : Number(point),
     marketName,
     runners: labels.map((label, i) => {
       const offer = offers[i] ?? { price: 0, book: 0 };

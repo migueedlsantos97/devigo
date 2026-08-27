@@ -1,0 +1,138 @@
+{
+  "arsenal": {
+    "file": "arsenal.png",
+    "apiName": "arsenal.png"
+  },
+  "aston-villa": {
+    "file": "aston-villa.png",
+    "apiName": "aston villa.png"
+  },
+  "athletic-bilbao": {
+    "file": "athletic-bilbao.png",
+    "apiName": "athletic bilbao.png"
+  },
+  "atletico-madrid": {
+    "file": "atletico-madrid.png",
+    "apiName": "atletico madrid.png"
+  },
+  "barcelona": {
+    "file": "barcelona.png",
+    "apiName": "barcelona.png"
+  },
+  "bournemouth": {
+    "file": "bournemouth.png",
+    "apiName": "bournemouth.png"
+  },
+  "brentford": {
+    "file": "brentford.png",
+    "apiName": "brentford.png"
+  },
+  "brighton-and-hove-albion": {
+    "file": "brighton-and-hove-albion.png",
+    "apiName": "brighton and hove albion.png"
+  },
+  "burnley": {
+    "file": "burnley.png",
+    "apiName": "burnley.png"
+  },
+  "celta-vigo": {
+    "file": "celta-vigo.png",
+    "apiName": "celta vigo.png"
+  },
+  "chelsea": {
+    "file": "chelsea.png",
+    "apiName": "chelsea.png"
+  },
+  "crystal-palace": {
+    "file": "crystal-palace.png",
+    "apiName": "crystal palace.png"
+  },
+  "elche": {
+    "file": "elche.png",
+    "apiName": "elche.png"
+  },
+  "espanyol": {
+    "file": "espanyol.png",
+    "apiName": "espanyol.png"
+  },
+  "everton": {
+    "file": "everton.png",
+    "apiName": "everton.png"
+  },
+  "fulham": {
+    "file": "fulham.png",
+    "apiName": "fulham.png"
+  },
+  "getafe": {
+    "file": "getafe.png",
+    "apiName": "getafe.png"
+  },
+  "girona": {
+    "file": "girona.png",
+    "apiName": "girona.png"
+  },
+  "leeds-united": {
+    "file": "leeds-united.png",
+    "apiName": "leeds united.png"
+  },
+  "levante": {
+    "file": "levante.png",
+    "apiName": "levante.png"
+  },
+  "liverpool": {
+    "file": "liverpool.png",
+    "apiName": "liverpool.png"
+  },
+  "mallorca": {
+    "file": "mallorca.png",
+    "apiName": "mallorca.png"
+  },
+  "manchester-city": {
+    "file": "manchester-city.png",
+    "apiName": "manchester city.png"
+  },
+  "manchester-united": {
+    "file": "manchester-united.png",
+    "apiName": "manchester united.png"
+  },
+  "newcastle-united": {
+    "file": "newcastle-united.png",
+    "apiName": "newcastle united.png"
+  },
+  "osasuna": {
+    "file": "osasuna.png",
+    "apiName": "osasuna.png"
+  },
+  "rayo-vallecano": {
+    "file": "rayo-vallecano.png",
+    "apiName": "rayo vallecano.png"
+  },
+  "real-betis": {
+    "file": "real-betis.png",
+    "apiName": "real betis.png"
+  },
+  "real-madrid": {
+    "file": "real-madrid.png",
+    "apiName": "real madrid.png"
+  },
+  "real-oviedo": {
+    "file": "real-oviedo.png",
+    "apiName": "real oviedo.png"
+  },
+  "sunderland": {
+    "file": "sunderland.png",
+    "apiName": "sunderland.png"
+  },
+  "tottenham-hotspur": {
+    "file": "tottenham-hotspur.png",
+    "apiName": "tottenham hotspur.png"
+  },
+  "west-ham-united": {
+    "file": "west-ham-united.png",
+    "apiName": "west ham united.png"
+  },
+  "wolverhampton-wanderers": {
+    "file": "wolverhampton-wanderers.png",
+    "apiName": "wolverhampton wanderers.png"
+  }
+}
