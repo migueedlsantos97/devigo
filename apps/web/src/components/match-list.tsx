@@ -56,13 +56,13 @@ export function MatchList({
         <span className="text-[11px] text-ink-5">{copy.pickedCount(selected.length)}</span>
       </div>
 
-      <label className="flex min-h-[38px] items-center gap-2 rounded-[9px] border border-edge bg-sunken px-2.5 focus-within:border-ink-5">
+      <label className="flex min-h-[46px] panel:min-h-[40px] items-center gap-2 rounded-[9px] border border-edge bg-sunken px-2.5 focus-within:border-ink-5">
         <Search size={14} className="shrink-0 text-ink-5" aria-hidden />
         <input
           value={query}
           onChange={(event) => onQuery(event.target.value)}
           placeholder={copy.search}
-          className="min-w-0 flex-1 bg-transparent py-2 text-[12.5px] outline-none placeholder:text-ink-5"
+          className="min-w-0 flex-1 self-stretch bg-transparent text-[12.5px] outline-none placeholder:text-ink-5"
         />
       </label>
 

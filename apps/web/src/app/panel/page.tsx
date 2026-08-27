@@ -11,9 +11,11 @@ import { MatchList } from '@/components/match-list';
 import { SpecialsList } from '@/components/specials-list';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { TicketPanel } from '@/components/ticket-panel';
+import { TicketSheet } from '@/components/ticket-sheet';
 import { formatCurrency, useCurrency } from '@/lib/currency';
 import { useHistory } from '@/lib/history';
 import { useLocale } from '@/lib/locale';
+import { useIsWide } from '@/lib/media';
 import { DEFAULT_BANKROLL } from '@/lib/markets';
 import { useMatchBoard } from '@/lib/match-store';
 
@@ -31,6 +33,8 @@ export default function PanelPage() {
   const [query, setQuery] = useState('');
   const [stake, setStake] = useState(200);
   const [saved, setSaved] = useState(false);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const wide = useIsWide();
 
   const visible = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -69,21 +73,40 @@ export default function PanelPage() {
     window.setTimeout(() => setSaved(false), 1600);
   };
 
+  // Built once and placed either in the third column or inside the phone's
+  // sheet: same panel, one copy in the accessibility tree.
+  const ticketPanel = (
+    <TicketPanel
+      ticket={board.ticket}
+      objective={board.objective}
+      onObjective={board.setObjective}
+      stake={stake}
+      onStake={setStake}
+      stakeSteps={STAKE_STEPS}
+      bankroll={DEFAULT_BANKROLL}
+      currency={currency}
+      locale={locale}
+      copy={copy}
+      onSave={saveTicket}
+      saved={saved}
+    />
+  );
+
   return (
     <main className="min-h-screen bg-canvas text-ink">
       <header
         className="sticky top-0 z-20 flex min-h-[56px] flex-wrap items-center gap-x-4 gap-y-2 border-b border-edge px-4 py-2 backdrop-blur-[12px] md:px-6"
         style={{ background: 'var(--header-bg)' }}
       >
-        <Link href="/" className="no-underline">
+        <Link href="/" className="flex min-h-[44px] items-center no-underline">
           <Wordmark compact />
         </Link>
         <nav className="flex gap-0.5">
-          <span className="rounded-[7px] bg-btn px-3 py-1.5 text-[12.5px]">{t.panelNav.builder}</span>
-          <Link href="/scan" className="rounded-[7px] px-3 py-1.5 text-[12.5px] text-ink-3 no-underline hover:text-ink">
+          <span className="flex min-h-[44px] items-center rounded-[7px] bg-btn px-3 text-[12.5px]">{t.panelNav.builder}</span>
+          <Link href="/scan" className="flex min-h-[44px] items-center rounded-[7px] px-3 text-[12.5px] text-ink-3 no-underline hover:text-ink">
             {t.panelNav.scanner}
           </Link>
-          <Link href="/history" className="rounded-[7px] px-3 py-1.5 text-[12.5px] text-ink-3 no-underline hover:text-ink">
+          <Link href="/history" className="flex min-h-[44px] items-center rounded-[7px] px-3 text-[12.5px] text-ink-3 no-underline hover:text-ink">
             {t.panelNav.history}
           </Link>
         </nav>
@@ -108,50 +131,58 @@ export default function PanelPage() {
           body={board.feed === 'quota' ? t.feedQuotaBody : t.feedUnavailableBody}
         />
       ) : (
-        <div className="grid grid-cols-1 gap-4 px-4 py-4 md:px-6 panel:grid-cols-[380px_minmax(0,1fr)_360px]">
-          <MatchList
-            matches={visible}
-            selected={board.selected}
-            focused={board.focused}
-            locale={locale}
-            copy={copy}
-            query={query}
-            onQuery={setQuery}
-            onToggle={board.toggle}
-            onFocus={board.focus}
-          />
+        <>
+          <div
+            className="grid grid-cols-1 gap-4 px-4 py-4 md:px-6 panel:grid-cols-[380px_minmax(0,1fr)_360px]"
+            // Room for the sheet's collapsed bar, so the last match in the list
+            // is reachable rather than parked underneath it.
+            style={{ paddingBottom: wide ? undefined : 'calc(76px + env(safe-area-inset-bottom))' }}
+          >
+            <MatchList
+              matches={visible}
+              selected={board.selected}
+              focused={board.focused}
+              locale={locale}
+              copy={copy}
+              query={query}
+              onQuery={setQuery}
+              onToggle={board.toggle}
+              onFocus={board.focus}
+            />
 
-          <div className="min-w-0">
-            {board.focusedMatch && board.focusedModel ? (
-              <SpecialsList
-                match={board.focusedMatch}
-                specials={board.specials}
-                locale={locale}
-                copy={copy}
-              />
-            ) : (
-              <div className="rounded-[14px] border border-dashed border-edge px-4 py-10 text-center">
-                <p className="m-0 text-[13px] font-medium">{copy.emptyTitle}</p>
-                <p className="m-0 mt-1.5 text-[12px] leading-[1.55] text-ink-3">{copy.emptyBody}</p>
-              </div>
-            )}
+            <div className="min-w-0">
+              {board.focusedMatch && board.focusedModel ? (
+                <SpecialsList
+                  match={board.focusedMatch}
+                  specials={board.specials}
+                  locale={locale}
+                  copy={copy}
+                />
+              ) : (
+                <div className="rounded-[14px] border border-dashed border-edge px-4 py-10 text-center">
+                  <p className="m-0 text-[13px] font-medium">{copy.emptyTitle}</p>
+                  <p className="m-0 mt-1.5 text-[12px] leading-[1.55] text-ink-3">{copy.emptyBody}</p>
+                </div>
+              )}
+            </div>
+
+            {wide && ticketPanel}
           </div>
 
-          <TicketPanel
-            ticket={board.ticket}
-            objective={board.objective}
-            onObjective={board.setObjective}
-            stake={stake}
-            onStake={setStake}
-            stakeSteps={STAKE_STEPS}
-            bankroll={DEFAULT_BANKROLL}
-            currency={currency}
-            locale={locale}
-            copy={copy}
-            onSave={saveTicket}
-            saved={saved}
-          />
-        </div>
+          {!wide && (
+            <TicketSheet
+              ticket={board.ticket}
+              open={sheetOpen}
+              onOpenChange={setSheetOpen}
+              stake={stake}
+              currency={currency}
+              locale={locale}
+              copy={copy}
+            >
+              {ticketPanel}
+            </TicketSheet>
+          )}
+        </>
       )}
     </main>
   );

@@ -75,7 +75,7 @@ export function TicketPanel({
             onClick={() => onObjective(key)}
             aria-pressed={objective === key}
             title={copy.objectives[key].hint}
-            className={`min-h-[36px] cursor-pointer rounded-[9px] border px-3.5 text-[12px] font-medium transition-colors ${
+            className={`min-h-[44px] panel:min-h-[36px] cursor-pointer rounded-[9px] border px-4 panel:px-3.5 text-[12.5px] panel:text-[12px] font-medium transition-colors ${
               objective === key
                 ? 'border-ev bg-ev-brand text-ev-text'
                 : 'border-edge text-ink-2 hover:border-ctrl-strong'
@@ -108,7 +108,7 @@ export function TicketPanel({
                   type="button"
                   onClick={() => onStake(step)}
                   aria-pressed={stake === step}
-                  className={`min-h-[32px] cursor-pointer rounded-[7px] px-2.5 font-mono text-[11.5px] ${
+                  className={`min-h-[44px] panel:min-h-[32px] cursor-pointer rounded-[7px] px-3.5 panel:px-2.5 font-mono text-[12.5px] panel:text-[11.5px] ${
                     stake === step ? 'bg-ctrl text-ink' : 'bg-btn text-ink-3 hover:text-ink'
                   }`}
                 >
@@ -192,7 +192,7 @@ export function TicketPanel({
             <button
               type="button"
               onClick={onSave}
-              className="min-h-[42px] w-full cursor-pointer rounded-[9px] border border-ev bg-ev text-[13px] font-semibold text-ev-on hover:bg-ev-light"
+              className="min-h-[48px] panel:min-h-[42px] w-full cursor-pointer rounded-[9px] border border-ev bg-ev text-[13.5px] panel:text-[13px] font-semibold text-ev-on hover:bg-ev-light"
             >
               {saved ? '✓' : copy.save}
             </button>
