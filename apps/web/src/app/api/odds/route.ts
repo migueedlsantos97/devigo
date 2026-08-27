@@ -211,7 +211,25 @@ const toMarkets = (
  */
 const cache = new Map<number, { readonly at: number; readonly markets: ReadonlyArray<NormalizedMarket> }>();
 
+/**
+ * A frozen capture of a real feed response, for building against without
+ * spending the request allowance. The prices in it are genuine but stale, so it
+ * is refused outside development however the flag is set: a stale price shown
+ * as a live one is the single most misleading thing this product could do.
+ */
+const snapshot = async (): Promise<Response | null> => {
+  if (process.env['ODDS_SNAPSHOT'] !== '1' || process.env.NODE_ENV === 'production') return null;
+  const { readFile } = await import('node:fs/promises');
+  const { join } = await import('node:path');
+  const raw = await readFile(join(process.cwd(), 'fixtures', 'feed-snapshot.json'), 'utf8');
+  const body = JSON.parse(raw) as OddsFeedResponse;
+  return Response.json(body);
+};
+
 export async function GET(): Promise<Response> {
+  const frozen = await snapshot();
+  if (frozen) return frozen;
+
   const apiKey = process.env['ODDSPAPI_API_KEY'];
   if (!apiKey) {
     const body: OddsFeedResponse = { source: 'unavailable', markets: [] };

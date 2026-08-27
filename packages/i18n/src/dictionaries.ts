@@ -205,12 +205,12 @@ export interface Dictionary {
 const es: Dictionary = {
   nav: { engine: 'Motor', proof: 'Pruebas', pricing: 'Precios', whiteLabel: 'Marca blanca', console: 'Abrir el panel' },
   panelNav: { builder: 'Constructor', scanner: 'Escáner', history: 'Historial', bankroll: 'Capital' },
-  feedLive: 'SEÑAL EN VIVO · THE ODDS API',
+  feedLive: 'SEÑAL EN VIVO · ODDSPAPI',
   feedLoading: 'CARGANDO CUOTAS…',
   feedUnavailable: 'SIN SEÑAL',
   feedUnavailableBody: 'No pudimos traer cuotas ahora mismo. Puede ser un corte del proveedor o que no queden partidos próximos en estas ligas. Reintentá en unos minutos.',
   feedQuota: 'SIN CRÉDITOS',
-  feedQuotaBody: 'Se agotaron los créditos mensuales del proveedor de cuotas (The Odds API). El tablero vuelve cuando se renueve el plan o subas de plan; el escáner de boletos y el historial siguen funcionando.',
+  feedQuotaBody: 'El proveedor de cuotas (OddsPapi) cortó los pedidos por límite de uso. El tablero vuelve solo en unos minutos, o cuando renueve el plan; el escáner de boletos y el historial siguen funcionando.',
   bankrollLabel: 'capital',
   hero: {
     badge: 'MÉTODO DE SHIN · 10.000 SIMULACIONES POR BOLETO',
@@ -484,12 +484,12 @@ const es: Dictionary = {
 const en: Dictionary = {
   nav: { engine: 'Engine', proof: 'Proof', pricing: 'Pricing', whiteLabel: 'White-label', console: 'Open the console' },
   panelNav: { builder: 'Ticket builder', scanner: 'Scanner', history: 'History', bankroll: 'Bankroll' },
-  feedLive: 'FEED LIVE · THE ODDS API',
+  feedLive: 'FEED LIVE · ODDSPAPI',
   feedLoading: 'LOADING ODDS…',
   feedUnavailable: 'NO FEED',
   feedUnavailableBody: 'We could not fetch odds right now. That is either a provider outage or no upcoming games in these leagues. Try again in a few minutes.',
   feedQuota: 'NO CREDITS',
-  feedQuotaBody: 'The odds provider (The Odds API) has run out of monthly credits. The board returns when the plan renews or you upgrade; the ticket scanner and history still work.',
+  feedQuotaBody: 'The odds provider (OddsPapi) is rate limiting us. The board comes back on its own in a few minutes, or when the plan renews; the ticket scanner and history still work.',
   bankrollLabel: 'bankroll',
   hero: {
     badge: 'SHIN DE-VIG · 10,000 SIMULATIONS PER TICKET',

@@ -11,6 +11,7 @@ import {
   type MatchGroup,
   type SpecialQuote,
 } from './match-model';
+import { buildTicket, candidatesFor, type BuiltTicket, type Objective } from './builder';
 
 export type FeedState = 'loading' | FeedStatus;
 
@@ -55,8 +56,11 @@ export interface MatchBoard {
   readonly focusedMatch: MatchRow | null;
   readonly focusedModel: ScorelineModel | null;
   readonly specials: ReadonlyArray<SpecialQuote>;
+  readonly objective: Objective;
+  readonly ticket: BuiltTicket | null;
   readonly toggle: (eventId: string) => void;
   readonly focus: (eventId: string) => void;
+  readonly setObjective: (objective: Objective) => void;
   readonly clear: () => void;
 }
 
@@ -65,6 +69,7 @@ export const useMatchBoard = (): MatchBoard => {
   const [markets, setMarkets] = useState<ReadonlyArray<NormalizedMarket>>([]);
   const [selected, setSelected] = useState<ReadonlyArray<string>>([]);
   const [focused, setFocused] = useState<string | null>(null);
+  const [objective, setObjective] = useState<Objective>('valor');
   const modelFor = useModelCache();
 
   useEffect(() => {
@@ -107,6 +112,17 @@ export const useMatchBoard = (): MatchBoard => {
     [focusedModel, focusedMatch],
   );
 
+  const ticket = useMemo(() => {
+    const groups = selected
+      .map((id) => matches.find((match) => match.eventId === id))
+      .filter((match): match is MatchRow => match !== undefined)
+      .map((match) => {
+        const model = modelFor(match);
+        return model === null ? [] : candidatesFor(match, model);
+      });
+    return buildTicket(groups, objective);
+  }, [selected, matches, objective, modelFor]);
+
   const toggle = useCallback((eventId: string) => {
     setSelected((current) =>
       current.includes(eventId)
@@ -128,8 +144,11 @@ export const useMatchBoard = (): MatchBoard => {
     focusedMatch,
     focusedModel,
     specials,
+    objective,
+    ticket,
     toggle,
     focus,
+    setObjective,
     clear,
   };
 };
