@@ -3,14 +3,27 @@ import { createTheOddsApiAdapter, OddsFeedQuotaError, type OddsFeedEvent } from 
 import type { NormalizedMarket, OddsFeedResponse } from '@/lib/markets';
 
 // Always evaluated at request time (the API key is a runtime env var); the
-// upstream feed itself is cached for 5 minutes via the fetch Data Cache below.
+// upstream feed itself is cached for an hour via the fetch Data Cache below.
+// A request costs (markets x regions) credits per league, so the cache window
+// is what decides the monthly bill: at one hour, eight leagues cost ~11.5k
+// credits a month even under constant traffic.
 export const dynamic = 'force-dynamic';
 
+/**
+ * South America first: it is the home market, and the scoreline model only
+ * works on football anyway. The Odds API carries no Uruguayan league — the
+ * Uruguayan sides reach the board through Libertadores and Sudamericana, and
+ * the domestic fixtures come in through manually entered prices instead.
+ */
 const LEAGUES: ReadonlyArray<{ key: string; label: string; soccer: boolean }> = [
+  { key: 'soccer_conmebol_copa_libertadores', label: 'LIBERTADORES', soccer: true },
+  { key: 'soccer_conmebol_copa_sudamericana', label: 'SUDAMERICANA', soccer: true },
+  { key: 'soccer_argentina_primera_division', label: 'ARG', soccer: true },
+  { key: 'soccer_brazil_campeonato', label: 'BRASIL', soccer: true },
+  { key: 'soccer_chile_campeonato', label: 'CHILE', soccer: true },
+  { key: 'soccer_mexico_ligamx', label: 'MEXICO', soccer: true },
   { key: 'soccer_epl', label: 'EPL', soccer: true },
-  { key: 'basketball_nba', label: 'NBA', soccer: false },
   { key: 'soccer_spain_la_liga', label: 'LALIGA', soccer: true },
-  { key: 'americanfootball_nfl', label: 'NFL', soccer: false },
 ];
 
 const MAX_EVENTS_PER_LEAGUE = 3;
@@ -119,7 +132,7 @@ export async function GET(): Promise<Response> {
   const adapter = createTheOddsApiAdapter({
     apiKey,
     markets: 'h2h,totals',
-    fetchImpl: (input, init) => fetch(input, { ...init, next: { revalidate: 900 } }),
+    fetchImpl: (input, init) => fetch(input, { ...init, next: { revalidate: 3600 } }),
   });
 
   const settled = await Promise.allSettled(

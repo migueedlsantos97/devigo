@@ -49,6 +49,13 @@ export const METHODS: ReadonlyArray<VigMethod> = ['shin', 'multiplicative', 'add
 
 /** Sport a league/competition belongs to, for the sport-tab hierarchy above the board. */
 export const SPORT_OF_LEAGUE: Record<string, { key: string; label: Record<Locale, string> }> = {
+  LIBERTADORES: { key: 'futbol', label: { es: 'Fútbol', en: 'Football' } },
+  SUDAMERICANA: { key: 'futbol', label: { es: 'Fútbol', en: 'Football' } },
+  ARG: { key: 'futbol', label: { es: 'Fútbol', en: 'Football' } },
+  BRASIL: { key: 'futbol', label: { es: 'Fútbol', en: 'Football' } },
+  CHILE: { key: 'futbol', label: { es: 'Fútbol', en: 'Football' } },
+  MEXICO: { key: 'futbol', label: { es: 'Fútbol', en: 'Football' } },
+  URU: { key: 'futbol', label: { es: 'Fútbol', en: 'Football' } },
   EPL: { key: 'futbol', label: { es: 'Fútbol', en: 'Football' } },
   LALIGA: { key: 'futbol', label: { es: 'Fútbol', en: 'Football' } },
   NBA: { key: 'basket', label: { es: 'Baloncesto', en: 'Basketball' } },
