@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createTheOddsApiAdapter, toFairMarkets, type OddsFeedEvent } from './index.js';
+import { createTheOddsApiAdapter, OddsFeedQuotaError, toFairMarkets, type OddsFeedEvent } from './index.js';
 
 const apiPayload = [
   {
@@ -56,6 +56,13 @@ describe('the-odds-api adapter', () => {
     const totals = events[1] as OddsFeedEvent;
     expect(totals.market).toBe('totals:2.5');
     expect(totals.runners.map((r) => r.label)).toEqual(['Over', 'Under']);
+  });
+
+  it('throws a typed error when the provider quota is exhausted', async () => {
+    const quotaFetch: typeof fetch = async () =>
+      new Response('{"message":"Usage quota has been reached","error_code":"OUT_OF_USAGE_CREDIT"}', { status: 401 });
+    const adapter = createTheOddsApiAdapter({ apiKey: 'k', fetchImpl: quotaFetch });
+    await expect(adapter.fetchEvents('soccer_epl')).rejects.toBeInstanceOf(OddsFeedQuotaError);
   });
 
   it('throws on a non-ok response', async () => {

@@ -1,5 +1,13 @@
 import type { OddsAdapter, OddsFeedEvent } from './index.js';
 
+/** The provider's monthly request quota is exhausted. */
+export class OddsFeedQuotaError extends Error {
+  constructor() {
+    super('Odds feed quota exhausted');
+    this.name = 'OddsFeedQuotaError';
+  }
+}
+
 interface ApiOutcome { name: string; price: number; point?: number }
 interface ApiMarket { key: string; outcomes: ApiOutcome[] }
 interface ApiBookmaker { key: string; title: string; markets: ApiMarket[] }
@@ -20,7 +28,7 @@ export interface TheOddsApiConfig {
 
 export const createTheOddsApiAdapter = (config: TheOddsApiConfig): OddsAdapter => {
   const baseUrl = config.baseUrl ?? 'https://api.the-odds-api.com/v4';
-  const regions = config.regions ?? 'uk,eu';
+  const regions = config.regions ?? 'eu';
   const markets = config.markets ?? 'h2h';
   const doFetch = config.fetchImpl ?? fetch;
 
@@ -29,7 +37,13 @@ export const createTheOddsApiAdapter = (config: TheOddsApiConfig): OddsAdapter =
     async fetchEvents(league: string): Promise<ReadonlyArray<OddsFeedEvent>> {
       const url = `${baseUrl}/sports/${league}/odds?regions=${regions}&markets=${markets}&oddsFormat=decimal&apiKey=${config.apiKey}`;
       const response = await doFetch(url);
-      if (!response.ok) throw new Error(`Odds feed ${response.status}`);
+      if (!response.ok) {
+        // 401 + OUT_OF_USAGE_CREDIT means the monthly plan is spent, which is
+        // worth telling the user apart from an outage or an empty schedule.
+        const body = await response.text().catch(() => '');
+        if (body.includes('OUT_OF_USAGE_CREDIT')) throw new OddsFeedQuotaError();
+        throw new Error(`Odds feed ${response.status}`);
+      }
       const payload = (await response.json()) as ApiEvent[];
       return payload.flatMap((event) =>
         event.bookmakers.flatMap((book) =>

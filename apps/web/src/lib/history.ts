@@ -27,7 +27,7 @@ export interface SavedTicket {
   readonly currency: string;
   readonly method: VigMethod;
   readonly corr: number;
-  readonly source: 'live' | 'demo';
+  readonly source: 'live' | 'unavailable';
   readonly legs: ReadonlyArray<SavedLeg>;
   readonly combined: number;
   readonly fairCombined: number;
@@ -99,7 +99,7 @@ const fromRow = (row: TicketRow): SavedTicket => ({
   currency: row.currency,
   method: row.method as VigMethod,
   corr: row.corr,
-  source: row.source === 'live' ? 'live' : 'demo',
+  source: row.source === 'live' ? 'live' : 'unavailable',
   legs: row.legs.map((leg) => ({ ...leg, closing: leg.closing ?? null })),
   combined: Number(row.combined),
   fairCombined: Number(row.fair_combined),

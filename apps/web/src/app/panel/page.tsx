@@ -69,7 +69,7 @@ export default function PanelPage() {
       currency,
       method: panel.method,
       corr: panel.sharedMatchup === null ? 0 : 35,
-      source: panel.source,
+      source: panel.feed === 'live' ? 'live' : 'unavailable',
       legs: panel.legs.map((leg) => ({
         runnerId: leg.id,
         label: leg.label,
@@ -211,16 +211,21 @@ export default function PanelPage() {
           </nav>
         </div>
         <div className="flex min-w-0 flex-wrap items-center justify-end gap-x-3 gap-y-2.5">
-          <div className="hidden shrink-0 items-center gap-[7px] whitespace-nowrap font-mono text-[11px] lg:flex">
-            {panel.source === 'live' ? (
+          <div className="flex shrink-0 items-center gap-[7px] whitespace-nowrap font-mono text-[11px]">
+            {panel.feed === 'live' ? (
               <>
                 <span className="dv-pulse h-1.5 w-1.5 rounded-full bg-ev" />
                 <span className="text-ink-2">{t.feedLive}</span>
               </>
+            ) : panel.feed === 'loading' ? (
+              <>
+                <span className="dv-pulse h-1.5 w-1.5 rounded-full bg-ink-4" />
+                <span className="text-ink-3">{t.feedLoading}</span>
+              </>
             ) : (
               <>
                 <span className="h-1.5 w-1.5 rounded-full bg-risk" />
-                <span className="text-risk">{t.feedDemo}</span>
+                <span className="text-risk">{panel.feed === 'quota' ? t.feedQuota : t.feedUnavailable}</span>
               </>
             )}
           </div>
@@ -550,7 +555,22 @@ export default function PanelPage() {
               </div>
 
               {panel.board.length === 0 && (
-                <div className="px-5 py-[34px] text-center text-[12.5px] text-ink-4">{t.board.noMarkets}</div>
+                <div className="px-6 py-9 text-center">
+                  {panel.feed === 'loading' ? (
+                    <p className="m-0 text-[12.5px] text-ink-4">{t.feedLoading}</p>
+                  ) : panel.feed === 'unavailable' || panel.feed === 'quota' ? (
+                    <>
+                      <div className="flex justify-center text-risk">
+                        <CircleAlert size={26} strokeWidth={1.5} />
+                      </div>
+                      <p className="m-0 mx-auto mt-3 max-w-[46ch] text-[12.5px] leading-[1.6] text-ink-3">
+                        {panel.feed === 'quota' ? t.feedQuotaBody : t.feedUnavailableBody}
+                      </p>
+                    </>
+                  ) : (
+                    <p className="m-0 text-[12.5px] text-ink-4">{t.board.noMarkets}</p>
+                  )}
+                </div>
               )}
             </section>
           </main>

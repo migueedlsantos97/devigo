@@ -21,13 +21,13 @@ import { localDateKey } from './date-groups';
 import { recordFairProbabilities, sparklineFor, type Sparkline } from './price-history';
 import {
   DEFAULT_BANKROLL,
-  DEMO_MARKETS,
   METHODS,
   MIN_EDGE,
   SAME_MATCH_RHO,
   SIM_BANKROLL,
   sportOf,
   STYLE_CONFIG,
+  type FeedStatus,
   type NormalizedMarket,
   type OddsFeedResponse,
 } from './markets';
@@ -121,8 +121,11 @@ export const histogramBars = (
 
 export type BuildStatus = 'idle' | 'built' | 'short' | 'none';
 
+/** 'loading' until /api/odds answers; there is no fixture to fall back to. */
+export type FeedState = 'loading' | FeedStatus;
+
 export interface PanelState {
-  readonly source: 'live' | 'demo';
+  readonly feed: FeedState;
   readonly board: ReadonlyArray<BoardMarket>;
   /** Distinct sports on the board (day-filtered) with counts, in first-seen order. */
   readonly sports: ReadonlyArray<{ sport: string; count: number }>;
@@ -168,8 +171,8 @@ export interface PanelState {
 }
 
 export const usePanel = (locale: Locale): PanelState => {
-  const [markets, setMarkets] = useState<ReadonlyArray<NormalizedMarket>>(DEMO_MARKETS);
-  const [source, setSource] = useState<'live' | 'demo'>('demo');
+  const [markets, setMarkets] = useState<ReadonlyArray<NormalizedMarket>>([]);
+  const [feed, setFeed] = useState<FeedState>('loading');
   const [selected, setSelected] = useState<ReadonlyArray<string>>([]);
   const [overrides, setOverrides] = useState<Readonly<Record<string, number>>>({});
   const [stake, setStake] = useState(25);
@@ -216,14 +219,18 @@ export const usePanel = (locale: Locale): PanelState => {
     fetch('/api/odds')
       .then((res) => (res.ok ? (res.json() as Promise<OddsFeedResponse>) : null))
       .then((data) => {
-        if (cancelled || !data || data.source !== 'live' || data.markets.length === 0) return;
+        if (cancelled) return;
+        if (!data || data.source !== 'live' || data.markets.length === 0) {
+          setFeed('unavailable');
+          return;
+        }
         setMarkets(data.markets);
-        setSource('live');
+        setFeed('live');
         setSelected([]);
         setOverrides({});
       })
       .catch(() => {
-        // feed unreachable — stay on demo fixture
+        if (!cancelled) setFeed('unavailable');
       });
     return () => {
       cancelled = true;
@@ -408,7 +415,7 @@ export const usePanel = (locale: Locale): PanelState => {
   const visibleRunners = useMemo(() => visibleBoard.flatMap((m) => m.runners), [visibleBoard]);
 
   return {
-    source,
+    feed,
     board: visibleBoard,
     sports,
     sportFilter,

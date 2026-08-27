@@ -5,7 +5,11 @@ export interface Dictionary {
   readonly nav: { engine: string; proof: string; pricing: string; whiteLabel: string; console: string };
   readonly panelNav: { builder: string; scanner: string; history: string; bankroll: string };
   readonly feedLive: string;
-  readonly feedDemo: string;
+  readonly feedLoading: string;
+  readonly feedUnavailable: string;
+  readonly feedUnavailableBody: string;
+  readonly feedQuota: string;
+  readonly feedQuotaBody: string;
   readonly bankrollLabel: string;
   readonly hero: { badge: string; h1a: string; h1b: string; body: string; ctaPrimary: string; ctaSecondary: string };
   readonly metrics: ReadonlyArray<{ value: string; label: string; accent: boolean }>;
@@ -199,7 +203,11 @@ const es: Dictionary = {
   nav: { engine: 'Motor', proof: 'Pruebas', pricing: 'Precios', whiteLabel: 'Marca blanca', console: 'Abrir el panel' },
   panelNav: { builder: 'Constructor', scanner: 'Escáner', history: 'Historial', bankroll: 'Capital' },
   feedLive: 'SEÑAL EN VIVO · THE ODDS API',
-  feedDemo: 'DATOS DE DEMO',
+  feedLoading: 'CARGANDO CUOTAS…',
+  feedUnavailable: 'SIN SEÑAL',
+  feedUnavailableBody: 'No pudimos traer cuotas ahora mismo. Puede ser un corte del proveedor o que no queden partidos próximos en estas ligas. Reintentá en unos minutos.',
+  feedQuota: 'SIN CRÉDITOS',
+  feedQuotaBody: 'Se agotaron los créditos mensuales del proveedor de cuotas (The Odds API). El tablero vuelve cuando se renueve el plan o subas de plan; el escáner de boletos y el historial siguen funcionando.',
   bankrollLabel: 'capital',
   hero: {
     badge: 'MÉTODO DE SHIN · 10.000 SIMULACIONES POR BOLETO',
@@ -471,7 +479,11 @@ const en: Dictionary = {
   nav: { engine: 'Engine', proof: 'Proof', pricing: 'Pricing', whiteLabel: 'White-label', console: 'Open the console' },
   panelNav: { builder: 'Ticket builder', scanner: 'Scanner', history: 'History', bankroll: 'Bankroll' },
   feedLive: 'FEED LIVE · THE ODDS API',
-  feedDemo: 'DEMO DATA',
+  feedLoading: 'LOADING ODDS…',
+  feedUnavailable: 'NO FEED',
+  feedUnavailableBody: 'We could not fetch odds right now. That is either a provider outage or no upcoming games in these leagues. Try again in a few minutes.',
+  feedQuota: 'NO CREDITS',
+  feedQuotaBody: 'The odds provider (The Odds API) has run out of monthly credits. The board returns when the plan renews or you upgrade; the ticket scanner and history still work.',
   bankrollLabel: 'bankroll',
   hero: {
     badge: 'SHIN DE-VIG · 10,000 SIMULATIONS PER TICKET',

@@ -23,4 +23,4 @@ export const toFairMarkets = (
   method: VigMethod = 'shin',
 ) => events.map((event) => ({ event, fair: devig(event.runners, method) }));
 
-export { createTheOddsApiAdapter } from './the-odds-api.js';
+export { createTheOddsApiAdapter, OddsFeedQuotaError } from './the-odds-api.js';
