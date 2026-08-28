@@ -14,6 +14,7 @@ import { TicketPanel } from '@/components/ticket-panel';
 import { TicketSheet } from '@/components/ticket-sheet';
 import { formatCurrency, useCurrency } from '@/lib/currency';
 import { useHistory } from '@/lib/history';
+import { withinWindow, type MatchWindow } from '@/lib/date-groups';
 import { useLocale } from '@/lib/locale';
 import { useIsWide } from '@/lib/media';
 import { DEFAULT_BANKROLL } from '@/lib/markets';
@@ -34,15 +35,37 @@ export default function PanelPage() {
   const [stake, setStake] = useState(200);
   const [saved, setSaved] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [matchWindow, setMatchWindow] = useState<MatchWindow>('all');
   const wide = useIsWide();
 
-  const visible = useMemo(() => {
+  const matchesQuery = useMemo(() => {
     const needle = query.trim().toLowerCase();
     if (needle.length === 0) return board.matches;
     return board.matches.filter((match) =>
       `${match.matchup} ${match.league}`.toLowerCase().includes(needle),
     );
   }, [board.matches, query]);
+
+  /**
+   * Counted after the search but before the window, so each chip says how many
+   * matches switching to it would show. Counting before the search would
+   * promise fixtures the query has already ruled out.
+   */
+  const windowCounts = useMemo(
+    () =>
+      Object.fromEntries(
+        (['today', 'tomorrow', 'threeDays', 'all'] as const).map((key) => [
+          key,
+          matchesQuery.filter((match) => withinWindow(match.startsAt, key)).length,
+        ]),
+      ) as Record<MatchWindow, number>,
+    [matchesQuery],
+  );
+
+  const visible = useMemo(
+    () => matchesQuery.filter((match) => withinWindow(match.startsAt, matchWindow)),
+    [matchesQuery, matchWindow],
+  );
 
   const saveTicket = (): void => {
     const ticket = board.ticket;
@@ -70,7 +93,7 @@ export default function PanelPage() {
       })),
     });
     setSaved(true);
-    window.setTimeout(() => setSaved(false), 1600);
+    globalThis.setTimeout(() => setSaved(false), 1600);
   };
 
   // Built once and placed either in the third column or inside the phone's
@@ -146,6 +169,9 @@ export default function PanelPage() {
               copy={copy}
               query={query}
               onQuery={setQuery}
+              window={matchWindow}
+              onWindow={setMatchWindow}
+              windowCounts={windowCounts}
               onToggle={board.toggle}
               onFocus={board.focus}
             />

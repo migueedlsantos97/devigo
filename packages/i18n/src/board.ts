@@ -14,6 +14,9 @@ export interface BoardCopy {
   readonly takeHelp: string;
   readonly books: (n: number) => string;
   readonly noModel: string;
+  readonly foldAll: string;
+  readonly expandAll: string;
+  readonly noMatches: string;
 
   readonly specialsTitle: string;
   readonly specialsSubtitle: string;
@@ -58,6 +61,9 @@ const es: BoardCopy = {
     '«Se lleva» es el margen de la casa en ese partido, ya comparando todas las casas. Cuanto más bajo, más barato te sale jugarlo.',
   books: (n) => (n === 1 ? '1 casa' : `${n} casas`),
   noModel: 'Sin modelo: falta el 1X2 de este partido.',
+  foldAll: 'Plegar',
+  expandAll: 'Desplegar',
+  noMatches: 'No hay partidos en esta ventana. Probá con una más amplia.',
 
   specialsTitle: 'Lo que vale cada especial',
   specialsSubtitle: 'Calculado con el 1X2 y los totales del partido, antes de mirar tu casa.',
@@ -107,6 +113,9 @@ const en: BoardCopy = {
     "The book's cut on this match, after shopping every book quoting it. The lower it is, the cheaper the match is to play.",
   books: (n) => (n === 1 ? '1 book' : `${n} books`),
   noModel: 'No model: this match has no result market.',
+  foldAll: 'Fold',
+  expandAll: 'Unfold',
+  noMatches: 'No matches in this window. Try a wider one.',
 
   specialsTitle: 'What each special is worth',
   specialsSubtitle: "Computed from the match's own 1X2 and totals, before looking at your book.",
